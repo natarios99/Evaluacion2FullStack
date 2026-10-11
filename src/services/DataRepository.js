@@ -44,4 +44,4 @@ export const dataRepository = {
   getCart: () => JSON.parse(localStorage.getItem(STORAGE_KEY_CART)) || [],
   saveCart: (cart) => localStorage.setItem(STORAGE_KEY_CART, JSON.stringify(cart)),
   clearCart: () => localStorage.removeItem(STORAGE_KEY_CART)
-};
+};  

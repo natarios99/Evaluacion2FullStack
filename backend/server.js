@@ -1,70 +1,51 @@
-require('dotenv').config(); 
-const express = require('express');
-const mysql = require('mysql2');
+const expres = require('express');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
 
-const app = express();
-app.use(cors());
-app.use(express.json()); // leer peticiones JSON
+const aplicacion = expres();
+aplicacion.use(cors());
+aplicacion.use(expres.json());
 
-
-// ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '1234';
-// FLUSH PRIVILEGES;
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+// Configuración de la base de datos MySQL
+const baseDeDatos = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '1234', // Cambia esto por tu clave de MySQL
+  database: 'deportes_db',
+  waitForConnections: true,
+  connectionLimit: 10
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error('Error conectando a la base de datos:', err);
-    return;
-  }
-  console.log('¡Conectado exitosamente a MySQL Workbench!');
-});
-// Debe ser POST y la URL '/api/usuarios' exactos
-app.post('/api/usuarios', async (req, res) => {
-  const { nombre, email } = req.body;
-  
+// Ruta GET: Obtener todos los productos deportivos desde MySQL
+aplicacion.get('/api/productos', async (peticion, respuesta) => {
   try {
-    const [result] = await db.query(
-      'INSERT INTO usuarios (nombre, email) VALUES (?, ?)',
-      [nombre, email]
-    );
-    res.status(201).json({ id: result.insertId, nombre, email });
+    const [filas] = await baseDeDatos.query('SELECT * FROM productos ORDER BY id DESC');
+    respuesta.json(filas);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al insertar usuario' });
+    console.error('Error al obtener productos:', error);
+    respuesta.status(500).json({ error: 'Error al consultar la base de datos' });
   }
 });
-app.delete('/api/usuarios/:id', async (req, res) => {
-  const { id } = req.params;
+
+// Ruta POST: Descontar stock al procesar una compra
+aplicacion.post('/api/comprar', async (peticion, respuesta) => {
+  const { carrito } = peticion.body; // Arreglo de elementos en el carrito
 
   try {
-    const [result] = await db.query('DELETE FROM usuarios WHERE id = ?', [id]);
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+    for (const producto of carrito) {
+      await baseDeDatos.query(
+        'UPDATE productos SET stock = stock - ? WHERE id = ? AND stock >= ?',
+        [producto.cantidad, producto.id, producto.cantidad]
+      );
     }
-
-    res.json({ mensaje: 'Usuario eliminado correctamente' });
+    respuesta.json({ mensaje: 'Compra procesada exitosamente y stock actualizado' });
   } catch (error) {
-    console.error('Error en DELETE:', error);
-    res.status(500).json({ error: 'Error al eliminar usuario' });
+    console.error('Error al actualizar el stock:', error);
+    respuesta.status(500).json({ error: 'Error al procesar la compra' });
   }
 });
 
-// Ejemplo de una ruta (Endpoint) para obtener datos
-app.get('/api/usuarios', (req, res) => {
-  const sql = "SELECT * FROM usuarios";
-  db.query(sql, (err, data) => {
-    if (err) return res.status(500).json(err);
-    return res.json(data);
-  });
-});
-
-app.listen(5000, () => {
-  console.log('Servidor backend corriendo en el puerto 5000');
+const PUERTO = 5000;
+aplicacion.listen(PUERTO, () => {
+  console.log(`Servidor backend corriendo en http://localhost:${PUERTO}`);
 });
