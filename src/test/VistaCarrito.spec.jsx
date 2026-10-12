@@ -1,0 +1,94 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import CartView from '../vistas/VistaCarrito';
+
+// Datos simulados del carrito
+const carritoMock = [
+  { id: 1, nombre: 'Zapatillas', precio: 30000, cantidad: 2, img: '' },
+  { id: 2, nombre: 'Polera', precio: 10000, cantidad: 1, img: '' }
+];
+
+describe('Pruebas para CartView / VistaCarrito', () => {
+
+  it('muestra el mensaje de carrito vacío cuando no hay productos', () => {
+    render(
+      <CartView 
+        cart={[]} 
+        onUpdateQuantity={() => {}} 
+        onRemove={() => {}} 
+        onProceedToCheckout={() => {}} 
+      />
+    );
+
+    expect(screen.getByText('El carrito está vacío.')).toBeInTheDocument();
+  });
+
+  it('muestra la lista de productos y calcula el total correctamente', () => {
+    render(
+      <CartView 
+        cart={carritoMock} 
+        onUpdateQuantity={() => {}} 
+        onRemove={() => {}} 
+        onProceedToCheckout={() => {}} 
+      />
+    );
+
+    // Verifica que se rendericen los nombres
+    expect(screen.getByText('Zapatillas')).toBeInTheDocument();
+    expect(screen.getByText('Polera')).toBeInTheDocument();
+
+    expect(screen.getByText(/Total: \$70\.000/i)).toBeInTheDocument();
+  });
+
+  it('llama a onUpdateQuantity al cambiar la cantidad del input', () => {
+    const fnUpdate = vi.fn();
+    render(
+      <CartView 
+        cart={carritoMock} 
+        onUpdateQuantity={fnUpdate} 
+        onRemove={() => {}} 
+        onProceedToCheckout={() => {}} 
+      />
+    );
+
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[0], { target: { value: '3' } });
+
+    expect(fnUpdate).toHaveBeenCalledWith(1, 3);
+  });
+
+  it('llama a onRemove al hacer clic en el botón Eliminar', () => {
+    const fnRemove = vi.fn();
+    render(
+      <CartView 
+        cart={carritoMock} 
+        onUpdateQuantity={() => {}} 
+        onRemove={fnRemove} 
+        onProceedToCheckout={() => {}} 
+      />
+    );
+
+    const botonesEliminar = screen.getAllByText('Eliminar');
+    fireEvent.click(botonesEliminar[0]);
+
+    expect(fnRemove).toHaveBeenCalledWith(1);
+  });
+
+  it('llama a onProceedToCheckout al hacer clic en Comprar ahora', () => {
+    const fnCheckout = vi.fn();
+    render(
+      <CartView 
+        cart={carritoMock} 
+        onUpdateQuantity={() => {}} 
+        onRemove={() => {}} 
+        onProceedToCheckout={fnCheckout} 
+      />
+    );
+
+    const botonComprar = screen.getByText('Comprar ahora');
+    fireEvent.click(botonComprar);
+
+    expect(fnCheckout).toHaveBeenCalledTimes(1);
+  });
+
+});

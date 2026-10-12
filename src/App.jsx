@@ -138,6 +138,7 @@ export default function Aplicacion() {
             URL_API={URL_API} 
           />
         )}
+
       </main>
     </div>
   );
