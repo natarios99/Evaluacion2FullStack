@@ -59,6 +59,34 @@ export default function Aplicacion() {
     setProductoSeleccionado(producto);
     setVistaActual('detalle');
   };
+  const procesarPagoYDescontarStock = async () => {
+  if (carrito.length === 0) {
+    alert('El carrito está vacío.');
+    return;
+  }
+
+  try {
+    const respuesta = await fetch(`${URL_API}/comprar`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
+      // Debe enviarse como { carrito: [...] }
+      body: JSON.stringify({ carrito })
+    });
+
+    if (respuesta.ok) {
+      alert('¡Pago realizado con éxito! El stock ha sido actualizado en MySQL.');
+      setCarrito([]);
+      await cargarProductosDesdeMySQL(); // Recargar el stock actualizado
+    } else {
+      const errorServidor = await respuesta.json();
+      alert(`Error al procesar el pago: ${errorServidor.error || 'Intente nuevamente'}`);
+    }
+  } catch (error) {
+    console.error('Error al procesar la compra:', error);
+  }
+};  
 
   const totalPagar = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0);
 
