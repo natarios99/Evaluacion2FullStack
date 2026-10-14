@@ -6,7 +6,7 @@ const aplicacion = express();
 aplicacion.use(cors());
 aplicacion.use(express.json());
 
-// Configuración de la base de datos MySQL
+// Configuración del pool de conexiones MySQL
 const baseDeDatos = mysql.createPool({
   host: 'localhost',
   user: 'root',
@@ -19,29 +19,28 @@ const baseDeDatos = mysql.createPool({
 // Probar la conexión a la base de datos al iniciar el servidor
 baseDeDatos.getConnection()
   .then((conexion) => {
-    console.log('✅ Conexión exitosa a la base de datos MySQL (deportes_db)');
+    console.log(' Conexión exitosa a la base de datos MySQL (deportes_db)');
     conexion.release();
   })
   .catch((err) => {
-    console.error('❌ Error al conectar con MySQL:', err.message);
+    console.error(' Error al conectar con MySQL:', err.message);
   });
 
-// 1. Ruta GET: Obtener todos los productos deportivos desde MySQL
+// 1. Ruta GET: Obtener todos los productos
 aplicacion.get('/api/productos', async (peticion, respuesta) => {
   try {
     const [filas] = await baseDeDatos.query('SELECT * FROM productos ORDER BY id DESC');
     respuesta.json(filas);
   } catch (error) {
-    console.error('❌ Error exacto de MySQL en GET /api/productos:', error.message);
+    console.error(' Error exacto de MySQL en GET /api/productos:', error.message);
     respuesta.status(500).json({ error: 'Error interno del servidor: ' + error.message });
   }
 });
 
-// 2. Ruta POST: Agregar un nuevo producto a la base de datos
+// 2. Ruta POST: Agregar un nuevo producto
 aplicacion.post('/api/productos', async (peticion, respuesta) => {
   const { nombre, precio, categoria, stock, imagen, img, oferta } = peticion.body;
 
-  // Validaciones de campos obligatorios
   if (!nombre || precio === undefined) {
     return respuesta.status(400).json({ error: 'Nombre y precio son obligatorios.' });
   }
@@ -52,7 +51,6 @@ aplicacion.post('/api/productos', async (peticion, respuesta) => {
       VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    // Permite recibir tanto 'imagen' como 'img' desde React
     const rutaImagen = imagen || img || '/Zapatillasrunning.webp';
     const esOferta = oferta ? 1 : 0;
 
@@ -75,12 +73,12 @@ aplicacion.post('/api/productos', async (peticion, respuesta) => {
       oferta: esOferta
     });
   } catch (error) {
-    console.error('❌ Error al insertar en MySQL:', error.message);
+    console.error(' Error al insertar en MySQL:', error.message);
     respuesta.status(500).json({ error: 'Error en la base de datos: ' + error.message });
   }
 });
 
-// 3. Ruta POST: Procesar pago y descontar stock en MySQL
+// 3. Ruta POST: Procesar pago y descontar stock
 aplicacion.post('/api/comprar', async (peticion, respuesta) => {
   const { carrito } = peticion.body;
 
@@ -105,12 +103,52 @@ aplicacion.post('/api/comprar', async (peticion, respuesta) => {
 
     respuesta.status(200).json({ mensaje: '¡Compra procesada y stock descontado exitosamente!' });
   } catch (error) {
-    console.error('❌ Error al actualizar el stock en MySQL:', error.message);
+    console.error(' Error al actualizar el stock en MySQL:', error.message);
     respuesta.status(500).json({ error: 'Error al descontar stock en el servidor.' });
   }
 });
 
-// Iniciar servidor en el puerto 5000
+// 4. Ruta GET Corregida: Estadísticas para el Dashboard Admin
+aplicacion.get('/api/admin/stats', async (req, res) => {
+  try {
+    // Consulta de productos e inventario
+    const [productosResult] = await baseDeDatos.query(
+      'SELECT COUNT(*) AS total, COALESCE(SUM(stock), 0) AS inventario FROM productos'
+    );
+
+    let totalCompras = 0;
+    let totalUsuarios = 0;
+
+    // Intentamos consultar la tabla ordenes (si existe en tu DB)
+    try {
+      const [comprasResult] = await baseDeDatos.query('SELECT COUNT(*) AS total FROM ordenes');
+      totalCompras = comprasResult[0].total;
+    } catch (e) {
+      console.log('Tabla "ordenes" no encontrada, enviando 0 por defecto.');
+    }
+
+    // Intentamos consultar la tabla usuarios (si existe en tu DB)
+    try {
+      const [usuariosResult] = await baseDeDatos.query('SELECT COUNT(*) AS total FROM usuarios');
+      totalUsuarios = usuariosResult[0].total;
+    } catch (e) {
+      console.log(' Tabla "usuarios" no encontrada, enviando 0 por defecto.');
+    }
+
+    res.json({
+      compras: totalCompras,
+      probabilidadAumento: 20,
+      productos: productosResult[0].total || 0,
+      inventarioActual: Number(productosResult[0].inventario) || 0,
+      usuarios: totalUsuarios,
+      nuevosUsuariosMes: 0
+    });
+  } catch (error) {
+    console.error(' Error al obtener estadísticas:', error.message);
+    res.status(500).json({ error: 'Error en la base de datos: ' + error.message });
+  }
+});
+
 const PUERTO = process.env.PUERTO || 5000;
 aplicacion.listen(PUERTO, () => {
   console.log(`🚀 Servidor Node.js corriendo en http://localhost:${PUERTO}`);
