@@ -7,17 +7,15 @@ describe('Pruebas para PagoError.jsx', () => {
   it('muestra el mensaje de error de pago correctamente', () => {
     render(<PagoError onRetry={() => {}} />);
 
-    // Verifica que el título y mensaje estén en pantalla
-    expect(screen.getByText('No se pudo realizar el pago')).toBeInTheDocument();
-    expect(screen.getByText('Ocurrió un inconveniente al procesar tu transacción.')).toBeInTheDocument();
+    expect(screen.getByText(/no se pudo realizar el pago/i)).toBeInTheDocument();
+    expect(screen.getByText(/ocurrio un inconveniente al procesar tu transaccion/i)).toBeInTheDocument();
   });
 
   it('ejecuta la función onRetry al hacer clic en el botón', () => {
-    const fnReintentar = vi.fn(); // Función falsa
+    const fnReintentar = vi.fn(); 
     render(<PagoError onRetry={fnReintentar} />);
 
-    // Busca el botón y le da clic
-    const boton = screen.getByText('VOLVER A REALIZAR EL PAGO');
+    const boton = screen.getByRole('button', { name: /volver a realizar el pago/i });
     fireEvent.click(boton);
 
     // Confirma que la función se ejecutó
