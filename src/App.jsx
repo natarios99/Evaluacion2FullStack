@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-
 import Inicio from './vistas/Inicio';
 import Categorias from './vistas/Categorias';
 import DetalleProducto from './vistas/DetalleProducto';
@@ -113,7 +112,6 @@ export default function Aplicacion() {
 
   return (
     <div>
-      {/* BARRA DE NAVEGACIÓN GLOBAL */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
         <div className="container">
           <button className="navbar-brand btn btn-link text-white fw-bold text-decoration-none" onClick={() => setVistaActual('inicio')}>
@@ -187,7 +185,6 @@ export default function Aplicacion() {
         {vistaActual === 'blogs' && <Blogs />}
         {vistaActual === 'contacto' && <Contacto />}
         
-        {/* Pasamos URL_API a RegistroUsuario e IniciarSesion */}
         {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} URL_API={URL_API} />}
         {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} URL_API={URL_API} />}
         
@@ -197,6 +194,7 @@ export default function Aplicacion() {
             onUpdateQuantity={actualizarCantidadCarrito}
             onRemove={eliminarDelCarrito}
             onProceedToCheckout={procesarPagoYDescontarStock}
+            onSimulateError={() => setVistaActual('pago-error')}
             URL_API={URL_API}
           />
         )}

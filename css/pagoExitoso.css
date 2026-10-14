@@ -1,0 +1,77 @@
+.pago-contenedor {
+  width: 90%;
+  max-width: 500px;
+  margin: 40px auto;
+  font-family: Arial, sans-serif;
+}
+
+.pago-tarjeta {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  padding: 24px;
+  text-align: center;
+}
+
+.pago-titulo {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.pago-titulo.exito {
+  color: #198754;
+}
+
+.pago-titulo.error {
+  color: #dc3545;
+}
+
+.pago-cuerpo {
+  font-size: 14px;
+  color: #333333;
+  margin-bottom: 20px;
+}
+
+.pago-detalles {
+  text-align: left;
+  border: 1px solid #eeeeee;
+  background-color: #f9f9f9;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.pago-detalles h5 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  color: #222222;
+}
+
+.pago-detalles p {
+  margin: 4px 0;
+  color: #555555;
+}
+
+.pago-total {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #222222;
+}
+
+.pago-boton {
+  width: 100%;
+  padding: 12px;
+  background-color: #212529;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.pago-boton:hover {
+  background-color: #000000;
+}

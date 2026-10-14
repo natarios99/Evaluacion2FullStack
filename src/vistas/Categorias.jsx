@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '/css/categorias.css';
 
 export default function Categorias({ productos, agregarAlCarrito, verDetalle }) {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
@@ -10,15 +11,14 @@ export default function Categorias({ productos, agregarAlCarrito, verDetalle }) 
     : productos.filter(p => p.categoria === categoriaSeleccionada);
 
   return (
-    <div className="container my-4">
-      <h2 className="text-center mb-4">Tienda de Deportes & Performance</h2>
+    <div className="categorias-contenedor">
+      <h2 className="categorias-titulo-principal">Tienda de Deportes & Performance</h2>
       
-      {/* Botones de Categorías */}
-      <div className="d-flex flex-wrap gap-2 justify-content-center mb-4">
+      <div className="categorias-botones">
         {listaCategorias.map((cat, idx) => (
           <button 
             key={idx}
-            className={`btn ${categoriaSeleccionada === cat ? 'btn-primary' : 'btn-outline-dark'}`}
+            className={`boton-categoria ${categoriaSeleccionada === cat ? 'activo' : ''}`}
             onClick={() => setCategoriaSeleccionada(cat)}
           >
             {cat}
@@ -26,57 +26,50 @@ export default function Categorias({ productos, agregarAlCarrito, verDetalle }) 
         ))}
       </div>
 
-      <h3 className="mb-3 border-bottom pb-2">{categoriaSeleccionada}</h3>
+      <h3 className="categorias-subtitulo">{categoriaSeleccionada}</h3>
 
-      {/* Grilla de Productos */}
-      <div className="row g-4">
+      <div className="grid-productos">
         {productosFiltrados.map((producto) => (
-          <div key={producto.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div className="card h-100 shadow-sm position-relative">
-              
-              {/* Badge de Oferta */}
-              {producto.oferta === 1 && (
-                <span className="badge bg-danger position-absolute top-0 end-0 m-2 px-3 py-2">
-                  ¡OFERTA!
-                </span>
-              )}
+          <div key={producto.id} className="tarjeta-producto">
+            
+            {producto.oferta === 1 && (
+              <span className="badge-oferta">
+                ¡OFERTA!
+              </span>
+            )}
 
-              {/* Imagen .webp leída directamente desde public/ vía MySQL */}
-              <img 
-                src={producto.imagen || producto.img} 
-                alt={producto.nombre} 
-                className="card-img-top"
-                style={{ height: '200px', objectFit: 'cover', cursor: 'pointer' }}
-                onClick={() => verDetalle && verDetalle(producto)}
-                onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=Sin+Imagen'; }}
-              />
+            <img 
+              src={producto.imagen || producto.img} 
+              alt={producto.nombre} 
+              className="imagen-producto"
+              onClick={() => verDetalle && verDetalle(producto)}
+              onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=Sin+Imagen'; }}
+            />
 
-              <div className="card-body d-flex flex-column">
-                <span className="text-uppercase text-muted small fw-bold">{producto.categoria}</span>
-                <h5 className="card-title mt-1" style={{ cursor: 'pointer' }} onClick={() => verDetalle && verDetalle(producto)}>
-                  {producto.nombre}
-                </h5>
-                <p className="card-text text-primary fs-5 fw-bold mb-1">
-                  ${producto.precio.toLocaleString('es-CL')}
-                </p>
+            <div className="info-producto">
+              <span className="categoria-etiqueta">{producto.categoria}</span>
+              <h5 className="nombre-producto" onClick={() => verDetalle && verDetalle(producto)}>
+                {producto.nombre}
+              </h5>
+              <p className="precio-producto">
+                ${producto.precio.toLocaleString('es-CL')}
+              </p>
 
-                {/* Stock en MySQL */}
-                <p className={`card-text small mb-3 ${producto.stock > 5 ? 'text-success' : producto.stock > 0 ? 'text-warning fw-bold' : 'text-danger fw-bold'}`}>
-                  {producto.stock > 5 
-                    ? `Stock: ${producto.stock} unidades` 
-                    : producto.stock > 0 
-                      ? `¡Últimas ${producto.stock} unidades!` 
-                      : 'Agotado'}
-                </p>
+              <p className={producto.stock > 5 ? 'stock-alto' : producto.stock > 0 ? 'stock-bajo' : 'stock-agotado'}>
+                {producto.stock > 5 
+                  ? `Stock: ${producto.stock} unidades` 
+                  : producto.stock > 0 
+                    ? `¡Últimas ${producto.stock} unidades!` 
+                    : 'Agotado'}
+              </p>
 
-                <button 
-                  className="btn btn-dark mt-auto w-100" 
-                  onClick={() => agregarAlCarrito(producto)}
-                  disabled={producto.stock <= 0}
-                >
-                  {producto.stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}
-                </button>
-              </div>
+              <button 
+                className="boton-agregar" 
+                onClick={() => agregarAlCarrito(producto)}
+                disabled={producto.stock <= 0}
+              >
+                {producto.stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}
+              </button>
             </div>
           </div>
         ))}

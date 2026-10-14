@@ -1,39 +1,46 @@
 import React from 'react';
+import '/css/inicio.css';
 
 export default function Inicio({ cambiarVista }) {
   return (
-    <div className="container my-4">
-      {/* Banner Principal */}
-      <div className="p-5 mb-4 bg-dark text-white rounded-3 text-center">
-        <h1 className="display-4 fw-bold">EQUÍPATE PARA EL RENDIMIENTO</h1>
-        <p className="fs-4">Encuentra el mejor calzado, ropa y accesorios deportivos al mejor precio.</p>
-        <button className="btn btn-primary btn-lg mt-3" onClick={() => cambiarVista('categorias')}>
+    <div className="inicio-container">
+      <div className="inicio-hero">
+        <h1 className="inicio-hero-titulo">EQUÍPATE PARA EL DEPORTE</h1>
+        <p className="inicio-hero-subtitulo">Encuentra el mejor material deportivo al mejor precio.</p>
+        <button className="inicio-btn-principal" onClick={() => cambiarVista('categorias')}>
           Ver Catálogo Completo
         </button>
       </div>
 
-      {/* Tarjetas de Accesos Rápidos */}
-      <div className="row g-4 text-center">
-        <div className="col-md-4">
-          <div className="card p-4 shadow-sm h-100">
-            <h3>👟 Calzado Deportivo</h3>
-            <p className="text-muted">Zapatillas para running, fútbol y entrenamiento.</p>
-            <button className="btn btn-outline-dark mt-auto" onClick={() => cambiarVista('categorias')}>Ver Calzado</button>
+      <div className="inicio-grid">
+        <div className="inicio-card">
+          <div>
+            <h3 className="inicio-card-titulo">Calzado Deportivo</h3>
+            <p className="inicio-card-texto">Zapatillas para running, fútbol y entrenamiento.</p>
           </div>
+          <button className="inicio-btn-secundario" onClick={() => cambiarVista('categorias')}>
+            Ver Calzado
+          </button>
         </div>
-        <div className="col-md-4">
-          <div className="card p-4 shadow-sm h-100">
-            <h3>🔥 Ofertas Especiales</h3>
-            <p className="text-muted">Descuentos exclusivos en equipamiento seleccionado.</p>
-            <button className="btn btn-outline-danger mt-auto" onClick={() => cambiarVista('ofertas')}>Ver Ofertas</button>
+
+        <div className="inicio-card">
+          <div>
+            <h3 className="inicio-card-titulo">Ofertas Especiales</h3>
+            <p className="inicio-card-texto">Descuentos exclusivos en equipamiento seleccionado.</p>
           </div>
+          <button className="inicio-btn-oferta" onClick={() => cambiarVista('ofertas')}>
+            Ver Ofertas
+          </button>
         </div>
-        <div className="col-md-4">
-          <div className="card p-4 shadow-sm h-100">
-            <h3>📰 Blog Deportivo</h3>
-            <p className="text-muted">Consejos de entrenamiento, nutrición y rendimiento.</p>
-            <button className="btn btn-outline-dark mt-auto" onClick={() => cambiarVista('blogs')}>Leer Artículos</button>
+
+        <div className="inicio-card">
+          <div>
+            <h3 className="inicio-card-titulo">Blog Deportivo</h3>
+            <p className="inicio-card-texto">Consejos de entrenamiento, nutrición y rendimiento.</p>
           </div>
+          <button className="inicio-btn-secundario" onClick={() => cambiarVista('blogs')}>
+            Leer Artículos
+          </button>
         </div>
       </div>
     </div>

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 
-export default function CartView({ 
+export default function VistaCarrito({ 
   cart, 
   onUpdateQuantity, 
   onRemove, 
   onProceedToCheckout, 
+  onSimulateError,
   usuarioId = null, 
   onClearCart, 
   URL_API = 'http://localhost:3000/api' 
@@ -18,7 +19,6 @@ export default function CartView({
     setProcesando(true);
 
     try {
-
       const respuesta = await fetch(`${URL_API}/ordenes`, {
         method: 'POST',
         headers: {
@@ -32,8 +32,7 @@ export default function CartView({
       });
 
       if (respuesta.ok) {
-        alert('¡Compra realizada con éxito y registrada en la base de datos!');
-        
+
 
         if (onClearCart) {
           onClearCart();
@@ -107,13 +106,21 @@ export default function CartView({
               </table>
               <div className="d-flex justify-content-between align-items-center mt-3">
                 <h4>Total: ${total.toLocaleString('es-CL')}</h4>
-                <button 
-                  className="btn btn-success btn-lg" 
-                  onClick={manejarCompra}
-                  disabled={procesando}
-                >
-                  {procesando ? 'Procesando...' : 'Comprar ahora'}
-                </button>
+                <div className="d-flex gap-2">
+                  <button 
+                    className="btn btn-outline-danger btn-lg" 
+                    onClick={onSimulateError}
+                  >
+                    Simular Error de Pago
+                  </button>
+                  <button 
+                    className="btn btn-success btn-lg" 
+                    onClick={manejarCompra}
+                    disabled={procesando}
+                  >
+                    {procesando ? 'Procesando...' : 'Comprar ahora'}
+                  </button>
+                </div>
               </div>
             </div>
           )}

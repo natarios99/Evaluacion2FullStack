@@ -1,0 +1,225 @@
+.admin-contenedor {
+  display: flex;
+  min-height: 85vh;
+  font-family: Arial, sans-serif;
+}
+
+.admin-sidebar {
+  width: 230px;
+  background-color: #212529;
+  color: #ffffff;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-sidebar-titulo {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #495057;
+  padding-bottom: 10px;
+  font-size: 18px;
+}
+
+.admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-btn-tab {
+  padding: 10px 14px;
+  border-radius: 4px;
+  border: 1px solid #6c757d;
+  background-color: transparent;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.admin-btn-tab.activo {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.admin-divider {
+  border: none;
+  border-top: 1px solid #495057;
+  margin: 20px 0;
+}
+
+.admin-sidebar-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.admin-btn-tienda {
+  padding: 10px;
+  background-color: #6c757d;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.admin-btn-logout {
+  padding: 10px;
+  background-color: #dc3545;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.admin-contenido {
+  flex-grow: 1;
+  padding: 24px;
+  background-color: #f8f9fa;
+}
+
+.admin-grid-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-card-stat {
+  flex: 1;
+  padding: 16px;
+  border-radius: 6px;
+  color: #ffffff;
+}
+
+.admin-card-stat.compras {
+  background-color: #0d6efd;
+}
+
+.admin-card-stat.productos {
+  background-color: #198754;
+}
+
+.admin-card-stat.usuarios {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.admin-stat-numero {
+  font-size: 28px;
+  margin: 8px 0;
+}
+
+.admin-grid-accesos {
+  display: flex;
+  gap: 16px;
+}
+
+.admin-card-acceso {
+  flex: 1;
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.admin-grid-gestion {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.admin-col-formulario {
+  width: 320px;
+}
+
+.admin-col-tabla {
+  flex: 1;
+}
+
+.admin-card {
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.admin-campo {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-campo label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #333333;
+}
+
+.admin-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.admin-btn-guardar {
+  width: 100%;
+  padding: 10px;
+  background-color: #0d6efd;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.admin-tabla-contenedor {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.admin-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-tabla th {
+  background-color: #212529;
+  color: #ffffff;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.admin-tabla td {
+  padding: 10px;
+  border-bottom: 1px solid #dddddd;
+  font-size: 14px;
+}
+
+.admin-badge-stock {
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.admin-badge-stock.ok {
+  background-color: #198754;
+}
+
+.admin-badge-stock.bajo {
+  background-color: #dc3545;
+}
+
+.admin-alerta-vacio {
+  background-color: #cff4fc;
+  color: #055160;
+  border: 1px solid #b6effb;
+  padding: 12px;
+  border-radius: 4px;
+}

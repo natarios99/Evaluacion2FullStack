@@ -104,7 +104,6 @@ export default function GestionProductos({ productos = [], recargarProductosDesd
     <div className="container-fluid py-4">
       <h2>Panel Administrativo</h2>
 
-      {/* Navegación por pestañas */}
       <ul className="nav nav-tabs my-3">
         <li className="nav-item">
           <button 
@@ -132,10 +131,8 @@ export default function GestionProductos({ productos = [], recargarProductosDesd
         </li>
       </ul>
 
-      {/* VISTA 1: GESTIÓN DE PRODUCTOS */}
       {pestanaActiva === 'productos' && (
         <>
-          {/* Formulario para Crear Producto */}
           <div className="card p-4 my-4 shadow-sm bg-light">
             <h4>Agregar Nuevo Producto Deportivo</h4>
             <form onSubmit={guardarProductoEnMySQL} className="row g-3">
@@ -224,7 +221,6 @@ export default function GestionProductos({ productos = [], recargarProductosDesd
             </form>
           </div>
 
-          {/* Tabla de Productos */}
           <h4>Productos en Base de Datos ({listaProductos.length})</h4>
           <table className="table table-striped align-middle">
             <thead>
@@ -274,7 +270,6 @@ export default function GestionProductos({ productos = [], recargarProductosDesd
         </>
       )}
 
-      {/* VISTA 2: HISTORIAL DE ÓRDENES */}
       {pestanaActiva === 'ordenes' && (
         <div className="mt-3">
           <h4>Órdenes de Compra Realizadas</h4>
@@ -313,7 +308,6 @@ export default function GestionProductos({ productos = [], recargarProductosDesd
         </div>
       )}
 
-      {/* VISTA 3: GESTIÓN DE USUARIOS */}
       {pestanaActiva === 'usuarios' && (
         <div className="mt-3">
           <h4>Usuarios Registrados</h4>

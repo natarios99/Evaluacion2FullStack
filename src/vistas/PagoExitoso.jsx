@@ -1,22 +1,25 @@
 import React from 'react';
+import '/css/pagoExitoso.css';
 
-export default function PaymentSuccess({ orderData, onBackHome }) {
+export default function PagoExitoso({ orderData, onBackHome }) {
   return (
-    <div className="container my-5 text-center" style={{ maxWidth: '600px' }}>
-      <div className="card p-4 shadow">
-        <div className="text-success mb-3" style={{ fontSize: '3rem' }}>✓</div>
-        <h3 className="text-success">Se ha realizado la compra</h3>
-        <p className="fw-bold">Código de Orden: #{orderData?.id || '20240705'}</p>
+    <div className="pago-contenedor">
+      <div className="pago-tarjeta">
+        <h3 className="pago-titulo exito">Se ha realizado la compra</h3>
+        <p className="pago-cuerpo">Codigo de Orden: #{orderData?.id || '20240705'}</p>
         
-        <div className="text-start bg-light p-3 rounded mb-3">
+        <div className="pago-detalles">
           <h5>Detalles del cliente</h5>
-          <p className="mb-1"><strong>Nombre:</strong> {orderData?.nombre || 'Pedro Hacker'}</p>
-          <p className="mb-1"><strong>Email:</strong> {orderData?.correo || 'pedro@example.com'}</p>
-          <p className="mb-1"><strong>Dirección:</strong> {orderData?.calle}, {orderData?.comuna}</p>
+          <p><strong>Nombre:</strong> {orderData?.nombre || 'Cliente Invitado'}</p>
+          <p><strong>Email:</strong> {orderData?.email || orderData?.correo || 'cliente@ejemplo.com'}</p>
+          <p><strong>Direccion:</strong> {orderData?.calle ? `${orderData.calle}, ${orderData.comuna}` : 'Santiago, Chile'}</p>
         </div>
 
-        <h4 className="my-3">Total pagado: ${orderData?.total?.toLocaleString('es-CL')}</h4>
-        <button className="btn btn-primary" onClick={onBackHome}>Volver a la tienda</button>
+        <div className="pago-total">Total pagado: ${orderData?.total?.toLocaleString('es-CL')}</div>
+        
+        <button className="pago-boton" onClick={onBackHome}>
+          Volver a la tienda
+        </button>
       </div>
     </div>
   );

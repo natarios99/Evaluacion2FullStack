@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '/css/contacto.css';
 
 export default function Contacto() {
   const [formulario, setFormulario] = useState({ nombre: '', email: '', mensaje: '' });
@@ -10,22 +11,43 @@ export default function Contacto() {
   };
 
   return (
-    <div className="container my-4" style={{ maxWidth: '600px' }}>
-      <h2>Contacto & Soporte</h2>
-      <form onSubmit={enviarContacto} className="card p-4 shadow-sm mt-3">
-        <div className="mb-3">
-          <label className="form-label">Nombre Completo</label>
-          <input type="text" className="form-control" value={formulario.nombre} onChange={e => setFormulario({...formulario, nombre: e.target.value})} required />
+    <div className="contacto-contenedor">
+      <h2 className="contacto-titulo">Contacto & Soporte</h2>
+      <form onSubmit={enviarContacto} className="contacto-tarjeta">
+        <div className="contacto-grupo">
+          <label className="contacto-etiqueta">Nombre Completo</label>
+          <input 
+            type="text" 
+            className="contacto-input" 
+            value={formulario.nombre} 
+            onChange={e => setFormulario({...formulario, nombre: e.target.value})} 
+            required 
+          />
         </div>
-        <div className="mb-3">
-          <label className="form-label">Correo Electrónico</label>
-          <input type="email" className="form-control" value={formulario.email} onChange={e => setFormulario({...formulario, email: e.target.value})} required />
+
+        <div className="contacto-grupo">
+          <label className="contacto-etiqueta">Correo Electrónico</label>
+          <input 
+            type="email" 
+            className="contacto-input" 
+            value={formulario.email} 
+            onChange={e => setFormulario({...formulario, email: e.target.value})} 
+            required 
+          />
         </div>
-        <div className="mb-3">
-          <label className="form-label">Mensaje o Consulta</label>
-          <textarea className="form-control" rows="4" value={formulario.mensaje} onChange={e => setFormulario({...formulario, mensaje: e.target.value})} required></textarea>
+
+        <div className="contacto-grupo">
+          <label className="contacto-etiqueta">Mensaje o Consulta</label>
+          <textarea 
+            className="contacto-textarea" 
+            rows="4" 
+            value={formulario.mensaje} 
+            onChange={e => setFormulario({...formulario, mensaje: e.target.value})} 
+            required
+          ></textarea>
         </div>
-        <button type="submit" className="btn btn-dark w-100">Enviar Mensaje</button>
+
+        <button type="submit" className="contacto-boton">Enviar Mensaje</button>
       </form>
     </div>
   );

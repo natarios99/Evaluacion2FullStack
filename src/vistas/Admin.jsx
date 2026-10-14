@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import '/css/admin.css';
 
 const URL_API = 'http://localhost:3000/api';
 
@@ -20,7 +20,6 @@ export default function Admin({ setCurrentView }) {
   const [listaOrdenes, setListaOrdenes] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // FFORMULARIO PARA AGREGAR PRODUCTO
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: '',
     precio: '',
@@ -29,7 +28,6 @@ export default function Admin({ setCurrentView }) {
     imagen: ''
   });
 
-  // Carga los datos de la base de datos al correrlo
   const cargarDatos = async () => {
     try {
       const resStats = await fetch(`${URL_API}/admin/stats`);
@@ -75,7 +73,6 @@ export default function Admin({ setCurrentView }) {
     cargarDatos();
   }, []);
 
-  // Guarda el porducto en la bd
   const agregarProducto = async (e) => {
     e.preventDefault();
     try {
@@ -86,204 +83,184 @@ export default function Admin({ setCurrentView }) {
       });
 
       if (res.ok) {
-        alert('✅ Producto agregado con éxito a MySQL');
+        alert('Producto agregado con exito a MySQL');
         setNuevoProducto({ nombre: '', precio: '', categoria: 'Zapatillas', stock: '', imagen: '' });
         cargarDatos(); 
       } else {
-        alert(' Error al guardar el producto.');
+        alert('Error al guardar el producto.');
       }
     } catch (error) {
       console.error('Error al enviar formulario:', error);
-      alert('Error de conexión con el servidor.');
+      alert('Error de conexion con el servidor.');
     }
   };
 
   if (cargando) {
-    return <div className="p-4 text-center"><p>Cargando panel de administración...</p></div>;
+    return <div style={{ padding: '20px', textAlign: 'center' }}><p>Cargando panel de administracion...</p></div>;
   }
 
   return (
-    <div className="d-flex" style={{ minHeight: '85vh' }}>
-      {/* Sidebar Lateral */}
-      <aside className="bg-dark text-white p-3" style={{ width: '230px' }}>
-        <h4 className="mb-4 text-center border-bottom pb-2">Company name</h4>
-        <div className="nav flex-column nav-pills gap-2">
+    <div className="admin-contenedor">
+      <aside className="admin-sidebar">
+        <h4 className="admin-sidebar-titulo">Panel Admin</h4>
+        <div className="admin-menu">
           <button 
-            className={`btn text-start ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline-light'}`}
+            className={`admin-btn-tab ${activeTab === 'dashboard' ? 'activo' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
           <button 
-            className={`btn text-start ${activeTab === 'productos' ? 'btn-primary' : 'btn-outline-light'}`}
+            className={`admin-btn-tab ${activeTab === 'productos' ? 'activo' : ''}`}
             onClick={() => setActiveTab('productos')}
           >
             Productos
           </button>
           <button 
-            className={`btn text-start ${activeTab === 'ordenes' ? 'btn-primary' : 'btn-outline-light'}`}
+            className={`admin-btn-tab ${activeTab === 'ordenes' ? 'activo' : ''}`}
             onClick={() => setActiveTab('ordenes')}
           >
-            Órdenes
+            Ordenes
           </button>
           <button 
-            className={`btn text-start ${activeTab === 'usuarios' ? 'btn-primary' : 'btn-outline-light'}`}
+            className={`admin-btn-tab ${activeTab === 'usuarios' ? 'activo' : ''}`}
             onClick={() => setActiveTab('usuarios')}
           >
             Usuarios
           </button>
         </div>
 
-        <hr className="bg-secondary my-4" />
+        <hr className="admin-divider" />
 
-        <div className="d-grid gap-2">
-          <button className="btn btn-secondary" onClick={() => setCurrentView ? setCurrentView('home') : (window.location.href = '/')}>
-            🏪 Ir a Tienda
+        <div className="admin-sidebar-acciones">
+          <button className="admin-btn-tienda" onClick={() => setCurrentView ? setCurrentView('home') : (window.location.href = '/')}>
+            Ir a Tienda
           </button>
-          <button className="btn btn-danger" onClick={() => alert('Cerrando sesión...')}>
-            Cerrar Sesión
+          <button className="admin-btn-logout" onClick={() => alert('Cerrando sesion...')}>
+            Cerrar Sesion
           </button>
         </div>
       </aside>
 
-      {/* Área Principal */}
-      <main className="flex-grow-1 p-4 bg-light">
-        {/* PESTAÑA 1: DASHBOARD */}
+      <main className="admin-contenido">
         {activeTab === 'dashboard' && (
           <div>
             <h2>Dashboard</h2>
-            <p className="text-muted">Resumen de las actividades diarias</p>
+            <p style={{ color: '#6c757d' }}>Resumen de las actividades diarias</p>
 
-            <div className="row g-3 mb-4">
-              <div className="col-md-4">
-                <div className="card bg-primary text-white p-3 shadow-sm">
-                  <h5>Compras</h5>
-                  <h2 className="my-2">{stats.compras.toLocaleString()}</h2>
-                  <small>Probabilidad de aumento: {stats.probabilidadAumento}%</small>
-                </div>
+            <div className="admin-grid-stats">
+              <div className="admin-card-stat compras">
+                <h5>Compras</h5>
+                <h2 className="admin-stat-numero">{stats.compras.toLocaleString()}</h2>
+                <small>Probabilidad de aumento: {stats.probabilidadAumento}%</small>
               </div>
-              <div className="col-md-4">
-                <div className="card bg-success text-white p-3 shadow-sm">
-                  <h5>Productos Totales</h5>
-                  <h2 className="my-2">{stats.productos}</h2>
-                  <small>Inventario actual: {stats.inventarioActual}</small>
-                </div>
+              <div className="admin-card-stat productos">
+                <h5>Productos Totales</h5>
+                <h2 className="admin-stat-numero">{stats.productos}</h2>
+                <small>Inventario actual: {stats.inventarioActual}</small>
               </div>
-              <div className="col-md-4">
-                <div className="card bg-warning text-dark p-3 shadow-sm">
-                  <h5>Usuarios Registrados</h5>
-                  <h2 className="my-2">{stats.usuarios}</h2>
-                  <small>Nuevos usuarios este mes: {stats.nuevosUsuariosMes}</small>
-                </div>
+              <div className="admin-card-stat usuarios">
+                <h5>Usuarios Registrados</h5>
+                <h2 className="admin-stat-numero">{stats.usuarios}</h2>
+                <small>Nuevos usuarios este mes: {stats.nuevosUsuariosMes}</small>
               </div>
             </div>
 
-            <div className="row g-3">
-              <div className="col-md-3">
-                <div className="card p-3 text-center shadow-sm" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('productos')}>
-                  <h5>📦 Productos</h5>
-                  <p className="text-muted small m-0">Administrar inventario y catálogo</p>
-                </div>
+            <div className="admin-grid-accesos">
+              <div className="admin-card-acceso" onClick={() => setActiveTab('productos')}>
+                <h5>Productos</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Administrar inventario y catalogo</p>
               </div>
-              <div className="col-md-3">
-                <div className="card p-3 text-center shadow-sm" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('ordenes')}>
-                  <h5>🧾 Órdenes</h5>
-                  <p className="text-muted small m-0">Gestión de compras realizadas</p>
-                </div>
+              <div className="admin-card-acceso" onClick={() => setActiveTab('ordenes')}>
+                <h5>Ordenes</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Gestion de compras realizadas</p>
               </div>
-              <div className="col-md-3">
-                <div className="card p-3 text-center shadow-sm" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('usuarios')}>
-                  <h5>👥 Usuarios</h5>
-                  <p className="text-muted small m-0">Administrar cuentas registradas</p>
-                </div>
+              <div className="admin-card-acceso" onClick={() => setActiveTab('usuarios')}>
+                <h5>Usuarios</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Administrar cuentas registradas</p>
               </div>
-              <div className="col-md-3">
-                <div className="card p-3 text-center shadow-sm" style={{ cursor: 'pointer' }} onClick={() => setCurrentView ? setCurrentView('home') : (window.location.href = '/')}>
-                  <h5>🏪 Ver Tienda</h5>
-                  <p className="text-muted small m-0">Visualizar la web pública</p>
-                </div>
+              <div className="admin-card-acceso" onClick={() => setCurrentView ? setCurrentView('home') : (window.location.href = '/')}>
+                <h5>Ver Tienda</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Visualizar la web publica</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* PESTAÑA 2: PRODUCTOS */}
         {activeTab === 'productos' && (
           <div>
-            <h2>Gestión de Productos</h2>
-            <div className="row mt-3">
-              {/* Formulario para agregar producto */}
-              <div className="col-md-4">
-                <div className="card p-3 shadow-sm">
+            <h2>Gestion de Productos</h2>
+            <div className="admin-grid-gestion">
+              <div className="admin-col-formulario">
+                <div className="admin-card">
                   <h4>Agregar Producto</h4>
-                  <form onSubmit={agregarProducto} className="mt-2">
-                    <div className="mb-2">
-                      <label className="form-label small">Nombre</label>
+                  <form onSubmit={agregarProducto}>
+                    <div className="admin-campo">
+                      <label>Nombre</label>
                       <input 
                         type="text" 
-                        className="form-control" 
+                        className="admin-input" 
                         value={nuevoProducto.nombre} 
                         onChange={(e) => setNuevoProducto({...nuevoProducto, nombre: e.target.value})} 
                         required 
                       />
                     </div>
-                    <div className="mb-2">
-                      <label className="form-label small">Precio ($)</label>
+                    <div className="admin-campo">
+                      <label>Precio ($)</label>
                       <input 
                         type="number" 
-                        className="form-control" 
+                        className="admin-input" 
                         value={nuevoProducto.precio} 
                         onChange={(e) => setNuevoProducto({...nuevoProducto, precio: e.target.value})} 
                         required 
                       />
                     </div>
-                    <div className="mb-2">
-                      <label className="form-label small">Categoría</label>
+                    <div className="admin-campo">
+                      <label>Categoria</label>
                       <input 
                         type="text" 
-                        className="form-control" 
+                        className="admin-input" 
                         value={nuevoProducto.categoria} 
                         onChange={(e) => setNuevoProducto({...nuevoProducto, categoria: e.target.value})} 
                       />
                     </div>
-                    <div className="mb-2">
-                      <label className="form-label small">Stock</label>
+                    <div className="admin-campo">
+                      <label>Stock</label>
                       <input 
                         type="number" 
-                        className="form-control" 
+                        className="admin-input" 
                         value={nuevoProducto.stock} 
                         onChange={(e) => setNuevoProducto({...nuevoProducto, stock: e.target.value})} 
                         required 
                       />
                     </div>
-                    <div className="mb-3">
-                      <label className="form-label small">Imagen (Ruta)</label>
+                    <div className="admin-campo">
+                      <label>Imagen (Ruta)</label>
                       <input 
                         type="text" 
-                        className="form-control" 
+                        className="admin-input" 
                         placeholder="/Zapatillasrunning.webp"
                         value={nuevoProducto.imagen} 
                         onChange={(e) => setNuevoProducto({...nuevoProducto, imagen: e.target.value})} 
                       />
                     </div>
-                    <button type="submit" className="btn btn-primary w-100">Guardar en MySQL</button>
+                    <button type="submit" className="admin-btn-guardar">Guardar en MySQL</button>
                   </form>
                 </div>
               </div>
 
-              {/* Tabla de Productos */}
-              <div className="col-md-8">
-                <div className="card p-3 shadow-sm">
+              <div className="admin-col-tabla">
+                <div className="admin-card">
                   <h4>Inventario Actual ({listaProductos.length})</h4>
-                  <div className="table-responsive mt-2">
-                    <table className="table table-hover align-middle">
-                      <thead className="table-dark">
+                  <div className="admin-tabla-contenedor">
+                    <table className="admin-tabla">
+                      <thead>
                         <tr>
                           <th>ID</th>
                           <th>Nombre</th>
                           <th>Precio</th>
                           <th>Stock</th>
-                          <th>Categoría</th>
+                          <th>Categoria</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -293,11 +270,11 @@ export default function Admin({ setCurrentView }) {
                             <td>{p.nombre}</td>
                             <td>${Number(p.precio).toLocaleString()}</td>
                             <td>
-                              <span className={`badge ${p.stock <= 5 ? 'bg-danger' : 'bg-success'}`}>
+                              <span className={`admin-badge-stock ${p.stock <= 5 ? 'bajo' : 'ok'}`}>
                                 {p.stock}
                               </span>
                             </td>
-                            <td>{p.categoria || 'Sin categoría'}</td>
+                            <td>{p.categoria || 'Sin categoria'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -309,65 +286,67 @@ export default function Admin({ setCurrentView }) {
           </div>
         )}
 
-        {/* PESTAÑA 3: ÓRDENES */}
         {activeTab === 'ordenes' && (
           <div>
-            <h2>Gestión de Órdenes</h2>
-            <div className="card p-3 shadow-sm mt-3">
+            <h2>Gestion de Ordenes</h2>
+            <div className="admin-card" style={{ marginTop: '16px' }}>
               {listaOrdenes.length === 0 ? (
-                <div className="alert alert-info mb-0">No hay órdenes registradas.</div>
+                <div className="admin-alerta-vacio">No hay ordenes registradas.</div>
               ) : (
-                <table className="table table-hover">
-                  <thead className="table-dark">
-                    <tr>
-                      <th>ID Órden</th>
-                      <th>ID Usuario</th>
-                      <th>Total</th>
-                      <th>Fecha</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {listaOrdenes.map((o) => (
-                      <tr key={o.id}>
-                        <td>#{o.id}</td>
-                        <td>{o.usuario_id || 'Invitado'}</td>
-                        <td>${Number(o.total).toLocaleString()}</td>
-                        <td>{o.fecha ? new Date(o.fecha).toLocaleString() : 'N/A'}</td>
+                <div className="admin-tabla-contenedor">
+                  <table className="admin-tabla">
+                    <thead>
+                      <tr>
+                        <th>ID Orden</th>
+                        <th>ID Usuario</th>
+                        <th>Total</th>
+                        <th>Fecha</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {listaOrdenes.map((o) => (
+                        <tr key={o.id}>
+                          <td>#{o.id}</td>
+                          <td>{o.usuario_id || 'Invitado'}</td>
+                          <td>${Number(o.total).toLocaleString()}</td>
+                          <td>{o.fecha ? new Date(o.fecha).toLocaleString() : 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
         )}
 
-        {/* PESTAÑA 4: USUARIOS */}
         {activeTab === 'usuarios' && (
           <div>
-            <h2>Gestión de Usuarios</h2>
-            <div className="card p-3 shadow-sm mt-3">
+            <h2>Gestion de Usuarios</h2>
+            <div className="admin-card" style={{ marginTop: '16px' }}>
               {listaUsuarios.length === 0 ? (
-                <div className="alert alert-info mb-0">No hay usuarios registrados.</div>
+                <div className="admin-alerta-vacio">No hay usuarios registrados.</div>
               ) : (
-                <table className="table table-hover">
-                  <thead className="table-dark">
-                    <tr>
-                      <th>ID</th>
-                      <th>Nombre</th>
-                      <th>Email</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {listaUsuarios.map((u) => (
-                      <tr key={u.id}>
-                        <td>{u.id}</td>
-                        <td>{u.nombre}</td>
-                        <td>{u.email}</td>
+                <div className="admin-tabla-contenedor">
+                  <table className="admin-tabla">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {listaUsuarios.map((u) => (
+                        <tr key={u.id}>
+                          <td>{u.id}</td>
+                          <td>{u.nombre}</td>
+                          <td>{u.email}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>

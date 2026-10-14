@@ -74,7 +74,6 @@ export default function Checkout({ cart, onCompleteOrder }) {
           </div>
         </div>
 
-        {/* Resumen del Pedido */}
         <div className="col-md-4">
           <div className="card p-3">
             <h5>Resumen de productos</h5>

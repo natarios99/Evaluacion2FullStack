@@ -1,0 +1,142 @@
+.categorias-contenedor {
+  width: 90%;
+  max-width: 1100px;
+  margin: 20px auto;
+  font-family: Arial, sans-serif;
+}
+
+.categorias-titulo-principal {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.categorias-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 25px;
+}
+
+.boton-categoria {
+  padding: 8px 14px;
+  background-color: #ffffff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.boton-categoria.activo {
+  background-color: #0d6efd;
+  color: #ffffff;
+  border-color: #0d6efd;
+}
+
+.categorias-subtitulo {
+  font-size: 20px;
+  color: #444;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+}
+
+.grid-productos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.tarjeta-producto {
+  width: 240px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  background-color: #fff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.badge-oferta {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #dc3545;
+  color: white;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 3px;
+}
+
+.imagen-producto {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.info-producto {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  flex-grow: 1;
+}
+
+.categoria-etiqueta {
+  font-size: 11px;
+  color: #777;
+  text-transform: uppercase;
+}
+
+.nombre-producto {
+  font-size: 16px;
+  margin: 5px 0;
+  cursor: pointer;
+  color: #222;
+}
+
+.precio-producto {
+  font-size: 18px;
+  font-weight: bold;
+  color: #0d6efd;
+  margin: 5px 0;
+}
+
+.stock-alto {
+  font-size: 12px;
+  color: #198754;
+  margin-bottom: 10px;
+}
+
+.stock-bajo {
+  font-size: 12px;
+  color: #ffc107;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.stock-agotado {
+  font-size: 12px;
+  color: #dc3545;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.boton-agregar {
+  margin-top: auto;
+  padding: 8px;
+  background-color: #212529;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.boton-agregar:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
