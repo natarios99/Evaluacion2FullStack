@@ -36,4 +36,20 @@ INSERT INTO productos (nombre, precio, categoria, stock, imagen, oferta) VALUES
 ('Mat de Yoga Antideslizante', 12999, 'Fitness', 15, '/Matdeyoga.webp', 0),
 ('Botella Térmica Deportiva 1L', 9990, 'Accesorios', 30, '/Botella.webp', 1);
 
+select * FROM productos;
 
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    email VARCHAR(100),
+    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS ordenes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT,
+    total DECIMAL(10,2),
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+	 
