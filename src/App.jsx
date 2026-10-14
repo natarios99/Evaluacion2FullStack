@@ -14,7 +14,8 @@ import VistaCarrito from './vistas/VistaCarrito';
 import PagoExitoso from './vistas/PagoExitoso';
 import PagoError from './vistas/PagoError';
 
-const URL_API = 'http://localhost:5000/api';
+// 1. DEFINICIÓN GLOBAL DE LA URL DE LA API
+const URL_API = 'http://localhost:3000/api';
 
 export default function Aplicacion() {
   // ESTADOS DE NAVEGACIÓN Y DATOS
@@ -78,7 +79,6 @@ export default function Aplicacion() {
       return;
     }
 
-    // FIX 1: Evita el error "Converting circular structure to JSON" cuando llega el evento del botón
     const clienteValido = (datosCliente && typeof datosCliente === 'object' && !datosCliente.target && !datosCliente.nativeEvent)
       ? datosCliente
       : { nombre: 'Cliente Registrado', email: 'cliente@ejemplo.com' };
@@ -95,7 +95,6 @@ export default function Aplicacion() {
       });
 
       if (respuesta.ok) {
-        // Guardar la información para mostrar en PagoExitoso
         setUltimoPedido({
           ...clienteValido,
           total: totalCalculado,
@@ -114,9 +113,9 @@ export default function Aplicacion() {
     }
   };  
 
-  // CÁLCULOS DEL CARRITO (Total $ y Total de unidades)
+  // CÁLCULOS DEL CARRITO
   const totalPagar = carrito.reduce((suma, item) => suma + (item.precio || 0) * (item.cantidad || 0), 0);
-  const totalItemsCarrito = carrito.reduce((suma, item) => suma + (item.cantidad || 0), 0); // FIX 2: Suma de unidades
+  const totalItemsCarrito = carrito.reduce((suma, item) => suma + (item.cantidad || 0), 0);
 
   return (
     <div>
@@ -195,8 +194,10 @@ export default function Aplicacion() {
         {vistaActual === 'ofertas' && <Ofertas productos={productos} agregarAlCarrito={agregarAlCarrito} />}
         {vistaActual === 'blogs' && <Blogs />}
         {vistaActual === 'contacto' && <Contacto />}
-        {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} />}
-        {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} />}
+        
+        {/* Pasamos URL_API a RegistroUsuario e IniciarSesion */}
+        {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} URL_API={URL_API} />}
+        {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} URL_API={URL_API} />}
         
         {/* VISTA DEL CARRITO */}
         {vistaActual === 'carrito' && (
@@ -205,6 +206,7 @@ export default function Aplicacion() {
             onUpdateQuantity={actualizarCantidadCarrito}
             onRemove={eliminarDelCarrito}
             onProceedToCheckout={procesarPagoYDescontarStock}
+            URL_API={URL_API}
           />
         )}
 

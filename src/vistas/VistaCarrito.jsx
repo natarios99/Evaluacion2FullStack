@@ -1,7 +1,59 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-export default function CartView({ cart, onUpdateQuantity, onRemove, onProceedToCheckout }) {
+export default function CartView({ 
+  cart, 
+  onUpdateQuantity, 
+  onRemove, 
+  onProceedToCheckout, 
+  usuarioId = null, 
+  onClearCart, 
+  URL_API = 'http://localhost:3000/api' 
+}) {
+  const [procesando, setProcesando] = useState(false);
   const total = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+
+  const manejarCompra = async () => {
+    if (cart.length === 0) return;
+
+    setProcesando(true);
+
+    try {
+      // Petición POST al endpoint de órdenes de Express
+      const respuesta = await fetch(`${URL_API}/ordenes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          usuario_id: usuarioId, // ID del usuario registrado o null
+          total: total,
+          carrito: cart
+        })
+      });
+
+      if (respuesta.ok) {
+        alert('¡Compra realizada con éxito y registrada en la base de datos!');
+        
+        // Vaciar el carrito si se provee la función
+        if (onClearCart) {
+          onClearCart();
+        }
+
+        // Ejecutar función adicional de redirección o checkout si existe
+        if (onProceedToCheckout) {
+          onProceedToCheckout();
+        }
+      } else {
+        const errorData = await respuesta.json().catch(() => ({}));
+        alert(`Error al procesar la compra: ${errorData.error || 'Inténtalo de nuevo'}`);
+      }
+    } catch (error) {
+      console.error('Error de red al procesar la compra:', error);
+      alert('No se pudo conectar con el servidor.');
+    } finally {
+      setProcesando(false);
+    }
+  };
 
   return (
     <div className="container my-4">
@@ -26,7 +78,15 @@ export default function CartView({ cart, onUpdateQuantity, onRemove, onProceedTo
                 <tbody>
                   {cart.map(item => (
                     <tr key={item.id}>
-                      <td><img src={item.img || 'https://via.placeholder.com/50x50'} alt={item.nombre} width="50" /></td>
+                      <td>
+                        <img 
+                          src={item.imagen || item.img || 'https://via.placeholder.com/50x50'} 
+                          alt={item.nombre} 
+                          width="50" 
+                          height="50"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </td>
                       <td>{item.nombre}</td>
                       <td>${item.precio.toLocaleString('es-CL')}</td>
                       <td>
@@ -35,7 +95,7 @@ export default function CartView({ cart, onUpdateQuantity, onRemove, onProceedTo
                           min="1" 
                           value={item.cantidad} 
                           className="form-control w-50"
-                          onChange={(e) => onUpdateQuantity(item.id, parseInt(e.target.value))}
+                          onChange={(e) => onUpdateQuantity(item.id, parseInt(e.target.value) || 1)}
                         />
                       </td>
                       <td>${(item.precio * item.cantidad).toLocaleString('es-CL')}</td>
@@ -48,8 +108,12 @@ export default function CartView({ cart, onUpdateQuantity, onRemove, onProceedTo
               </table>
               <div className="d-flex justify-content-between align-items-center mt-3">
                 <h4>Total: ${total.toLocaleString('es-CL')}</h4>
-                <button className="btn btn-success btn-lg" onClick={onProceedToCheckout}>
-                  Comprar ahora
+                <button 
+                  className="btn btn-success btn-lg" 
+                  onClick={manejarCompra}
+                  disabled={procesando}
+                >
+                  {procesando ? 'Procesando...' : 'Comprar ahora'}
                 </button>
               </div>
             </div>

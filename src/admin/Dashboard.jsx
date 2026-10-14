@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 export default function Dashboard({ setCurrentView }) {
-  // Estado para guardar las métricas reales traídas desde MySQL
   const [stats, setStats] = useState({
     compras: 0,
     probabilidadAumento: 0,
@@ -13,7 +12,6 @@ export default function Dashboard({ setCurrentView }) {
 
   const [cargando, setCargando] = useState(true);
 
-  // Consulta a tu backend Node.js (que se conecta a MySQL Workbench)
   useEffect(() => {
     fetch('http://localhost:3000/api/admin/stats')
       .then((res) => res.json())
@@ -61,7 +59,7 @@ export default function Dashboard({ setCurrentView }) {
         </div>
       </div>
 
-      {/* Grid de Accesos Directos */}
+
       <div className="row g-3">
         <div className="col-md-4">
           <button 

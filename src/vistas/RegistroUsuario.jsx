@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-export default function RegistroUsuario({ cambiarVista }) {
+// Si recibes URL_API como prop puedes usarla, o definirla por defecto
+export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localhost:3000/api' }) {
   const [datosFormulario, setDatosFormulario] = useState({
     nombre: '',
     email: '',
@@ -8,14 +9,42 @@ export default function RegistroUsuario({ cambiarVista }) {
     confirmarPassword: ''
   });
 
-  const manejarRegistro = (e) => {
+  const manejarRegistro = async (e) => {
     e.preventDefault();
+
+    // 1. Validar que las contraseñas coincidan
     if (datosFormulario.password !== datosFormulario.confirmarPassword) {
       alert('Las contraseñas no coinciden.');
       return;
     }
-    alert(`¡Cuenta creada con éxito para ${datosFormulario.nombre}!`);
-    cambiarVista('iniciar-sesion');
+
+    try {
+      // 2. Petición POST a Express para guardar en MySQL Workbench
+      const respuesta = await fetch(`${URL_API}/usuarios`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombre: datosFormulario.nombre,
+          email: datosFormulario.email
+        })
+      });
+
+      if (respuesta.ok) {
+        alert(`¡Cuenta creada con éxito para ${datosFormulario.nombre}!`);
+        // Redirigir a la vista de inicio de sesión
+        if (cambiarVista) {
+          cambiarVista('iniciar-sesion');
+        }
+      } else {
+        const errorData = await respuesta.json().catch(() => ({}));
+        alert(`Error al registrar: ${errorData.error || 'Inténtalo de nuevo'}`);
+      }
+    } catch (error) {
+      console.error('Error de conexión al registrar usuario:', error);
+      alert('No se pudo conectar con el servidor.');
+    }
   };
 
   return (
@@ -66,7 +95,7 @@ export default function RegistroUsuario({ cambiarVista }) {
           <button type="submit" className="btn btn-primary w-100">Registrarse</button>
         </form>
         <p className="text-center mt-3 mb-0 small">
-          ¿Ya tienes cuenta? <button className="btn btn-link p-0" onClick={() => cambiarVista('iniciar-sesion')}>Inicia Sesión aquí</button>
+          ¿Ya tienes cuenta? <button className="btn btn-link p-0" onClick={() => cambiarVista && cambiarVista('iniciar-sesion')}>Inicia Sesión aquí</button>
         </p>
       </div>
     </div>

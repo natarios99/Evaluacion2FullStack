@@ -4,25 +4,10 @@ FLUSH PRIVILEGES;
 
 CREATE DATABASE IF NOT EXISTS deportes_db;
 USE deportes_db;
-
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+drop table productos;
+show tables;
+DESCRIBE productos;
 TRUNCATE TABLE usuarios;
-
-INSERT INTO usuarios (nombre, email) VALUES 
-('Carlos Gómez', 'carlos@example.com'),
-('Ana López', 'ana@example.com');
-CREATE DATABASE IF NOT EXISTS deportes_db;
-USE deportes_db;
-
-
-CREATE DATABASE IF NOT EXISTS deportes_db;
-USE deportes_db;
-
 
 
 CREATE TABLE IF NOT EXISTS productos (
@@ -51,4 +36,4 @@ INSERT INTO productos (nombre, precio, categoria, stock, imagen, oferta) VALUES
 ('Mat de Yoga Antideslizante', 12999, 'Fitness', 15, '/Matdeyoga.webp', 0),
 ('Botella Térmica Deportiva 1L', 9990, 'Accesorios', 30, '/Botella.webp', 1);
 
-select * FROM productos;
+
