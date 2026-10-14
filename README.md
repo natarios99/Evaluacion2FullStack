@@ -52,4 +52,3 @@ INSERT INTO productos (nombre, precio, categoria, stock, imagen, oferta) VALUES
 ('Botella Térmica Deportiva 1L', 9990, 'Accesorios', 30, '/Botella.webp', 1);
 
 select * FROM productos;
-	 

@@ -10,6 +10,9 @@ import Contacto from './vistas/Contacto';
 import RegistroUsuario from './vistas/RegistroUsuario';
 import IniciarSesion from './vistas/IniciarSesion';
 import GestionProductos from './vistas/GestionProductos';
+import VistaCarrito from './vistas/VistaCarrito';
+import PagoExitoso from './vistas/PagoExitoso';
+import PagoError from './vistas/PagoError';
 
 const URL_API = 'http://localhost:5000/api';
 
@@ -20,6 +23,7 @@ export default function Aplicacion() {
   
   const [productos, setProductos] = useState([]);
   const [carrito, setCarrito] = useState([]);
+  const [ultimoPedido, setUltimoPedido] = useState(null);
 
   // Cargar productos de MySQL
   const cargarProductosDesdeMySQL = async () => {
@@ -36,7 +40,7 @@ export default function Aplicacion() {
     cargarProductosDesdeMySQL();
   }, []);
 
-  // Lógica del Carrito
+  // Carrito
   const agregarAlCarrito = (producto) => {
     if (producto.stock <= 0) {
       alert('Producto agotado');
@@ -54,41 +58,65 @@ export default function Aplicacion() {
     }
   };
 
-  // Función para ir a la vista de detalle de un producto específico
+  const actualizarCantidadCarrito = (id, nuevaCantidad) => {
+    setCarrito(carrito.map(item => item.id === id ? { ...item, cantidad: nuevaCantidad } : item));
+  };
+
+  const eliminarDelCarrito = (id) => {
+    setCarrito(carrito.filter(item => item.id !== id));
+  };
+
   const verDetalleProducto = (producto) => {
     setProductoSeleccionado(producto);
     setVistaActual('detalle');
   };
-  const procesarPagoYDescontarStock = async () => {
-  if (carrito.length === 0) {
-    alert('El carrito está vacío.');
-    return;
-  }
 
-  try {
-    const respuesta = await fetch(`${URL_API}/comprar`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json' 
-      },
-      // Debe enviarse como { carrito: [...] }
-      body: JSON.stringify({ carrito })
-    });
-
-    if (respuesta.ok) {
-      alert('¡Pago realizado con éxito! El stock ha sido actualizado en MySQL.');
-      setCarrito([]);
-      await cargarProductosDesdeMySQL(); // Recargar el stock actualizado
-    } else {
-      const errorServidor = await respuesta.json();
-      alert(`Error al procesar el pago: ${errorServidor.error || 'Intente nuevamente'}`);
+  // Función para procesar pago y redirigir a PagoExitoso o PagoError
+  const procesarPagoYDescontarStock = async (datosCliente) => {
+    if (carrito.length === 0) {
+      alert('El carrito está vacío.');
+      return;
     }
-  } catch (error) {
-    console.error('Error al procesar la compra:', error);
-  }
-};  
 
-  const totalPagar = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0);
+    // FIX 1: Evita el error "Converting circular structure to JSON" cuando llega el evento del botón
+    const clienteValido = (datosCliente && typeof datosCliente === 'object' && !datosCliente.target && !datosCliente.nativeEvent)
+      ? datosCliente
+      : { nombre: 'Cliente Registrado', email: 'cliente@ejemplo.com' };
+
+    const totalCalculado = carrito.reduce((suma, item) => suma + (item.precio || 0) * (item.cantidad || 0), 0);
+
+    try {
+      const respuesta = await fetch(`${URL_API}/comprar`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({ carrito, cliente: clienteValido })
+      });
+
+      if (respuesta.ok) {
+        // Guardar la información para mostrar en PagoExitoso
+        setUltimoPedido({
+          ...clienteValido,
+          total: totalCalculado,
+          id: Math.floor(100000 + Math.random() * 900000)
+        });
+
+        setCarrito([]);
+        await cargarProductosDesdeMySQL();
+        setVistaActual('pago-exitoso');
+      } else {
+        setVistaActual('pago-error');
+      }
+    } catch (error) {
+      console.error('Error al procesar la compra:', error);
+      setVistaActual('pago-error');
+    }
+  };  
+
+  // CÁLCULOS DEL CARRITO (Total $ y Total de unidades)
+  const totalPagar = carrito.reduce((suma, item) => suma + (item.precio || 0) * (item.cantidad || 0), 0);
+  const totalItemsCarrito = carrito.reduce((suma, item) => suma + (item.cantidad || 0), 0); // FIX 2: Suma de unidades
 
   return (
     <div>
@@ -129,8 +157,9 @@ export default function Aplicacion() {
             <div className="d-flex gap-2">
               <button className="btn btn-outline-light btn-sm" onClick={() => setVistaActual('iniciar-sesion')}>Iniciar Sesión</button>
               <button className="btn btn-primary btn-sm" onClick={() => setVistaActual('registro')}>Registro</button>
-              <button className="btn btn-success btn-sm ms-2">
-                🛒 ({carrito.length}) - ${totalPagar.toLocaleString('es-CL')}
+              
+              <button className="btn btn-success btn-sm ms-2" onClick={() => setVistaActual('carrito')}>
+                🛒 ({totalItemsCarrito}) - ${totalPagar.toLocaleString('es-CL')}
               </button>
             </div>
           </div>
@@ -139,7 +168,14 @@ export default function Aplicacion() {
 
       {/* RENDERIZADO CONDICIONAL DE VISTAS */}
       <main>
-        {vistaActual === 'inicio' && <Inicio cambiarVista={setVistaActual} />}
+        {vistaActual === 'inicio' && (
+          <Inicio 
+            cambiarVista={setVistaActual} 
+            agregarAlCarrito={agregarAlCarrito} 
+            verDetalle={verDetalleProducto} 
+          />
+        )}
+        
         {vistaActual === 'categorias' && (
           <Categorias 
             productos={productos} 
@@ -147,6 +183,7 @@ export default function Aplicacion() {
             verDetalle={verDetalleProducto} 
           />
         )}
+
         {vistaActual === 'detalle' && (
           <DetalleProducto 
             producto={productoSeleccionado} 
@@ -154,11 +191,37 @@ export default function Aplicacion() {
             cambiarVista={setVistaActual} 
           />
         )}
+
         {vistaActual === 'ofertas' && <Ofertas productos={productos} agregarAlCarrito={agregarAlCarrito} />}
         {vistaActual === 'blogs' && <Blogs />}
         {vistaActual === 'contacto' && <Contacto />}
         {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} />}
         {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} />}
+        
+        {/* VISTA DEL CARRITO */}
+        {vistaActual === 'carrito' && (
+          <VistaCarrito 
+            cart={carrito}
+            onUpdateQuantity={actualizarCantidadCarrito}
+            onRemove={eliminarDelCarrito}
+            onProceedToCheckout={procesarPagoYDescontarStock}
+          />
+        )}
+
+        {/* VISTAS POST-PAGO */}
+        {vistaActual === 'pago-exitoso' && (
+          <PagoExitoso 
+            orderData={ultimoPedido} 
+            onBackHome={() => setVistaActual('inicio')} 
+          />
+        )}
+
+        {vistaActual === 'pago-error' && (
+          <PagoError 
+            onRetry={() => setVistaActual('carrito')} 
+          />
+        )}
+
         {vistaActual === 'admin-productos' && (
           <GestionProductos 
             productos={productos} 
