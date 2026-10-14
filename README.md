@@ -1,6 +1,8 @@
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '1234';
 FLUSH PRIVILEGES;
 
+/*node server.js*/
+
 
 CREATE DATABASE IF NOT EXISTS deportes_db;
 USE deportes_db;
