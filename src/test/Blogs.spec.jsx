@@ -4,13 +4,10 @@ import Blogs from '../vistas/Blogs';
 
 describe('Pruebas básicas para la vista de <Blogs />', () => {
   test('debe mostrar el título principal del blog', () => {
-    // Se abre la pantalla de Blogs en el test
     render(<Blogs />);
 
-    // Busca el título en la pantalla
     const tituloPrincipal = screen.getByRole('heading', { name: /blog de deporte y vida sana/i });
     
-    // Verificamos que esté ahí presente
     expect(tituloPrincipal).toBeInTheDocument();
   });
 

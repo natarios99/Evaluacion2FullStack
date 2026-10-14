@@ -4,12 +4,10 @@ import { describe, test, expect, vi } from 'vitest';
 import Checkout from '../vistas/Checkout';
 
 describe('Pruebas unitarias para la vista de <Checkout />', () => {
-  // Crea datos de prueba
   const carritoSimulado = [
     { id: 1, nombre: 'Producto de Prueba', precio: 10000, cantidad: 2 }
   ];
 
-  // Se crea una función simulada
   const funcionCompletarSimulada = vi.fn();
 
   test('debe renderizar los títulos de la vista correctamente', () => {

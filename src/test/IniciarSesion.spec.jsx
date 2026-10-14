@@ -12,11 +12,9 @@ describe('Pruebas simples para la vista de Iniciar Sesión', () => {
     const titulo = screen.getByRole('heading', { name: /iniciar sesión/i });
     expect(titulo).toBeInTheDocument();
 
-    // Verificamos que estén las etiquetas
     expect(screen.getByText(/correo electrónico/i)).toBeInTheDocument();
     expect(screen.getByText(/contraseña/i)).toBeInTheDocument();
 
-    // Verificamos que aparezca el botón para ingresar al sistema
     const botonEntrar = screen.getByRole('button', { name: /entrar/i });
     expect(botonEntrar).toBeInTheDocument();
   });

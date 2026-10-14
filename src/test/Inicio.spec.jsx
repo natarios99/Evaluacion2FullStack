@@ -8,11 +8,9 @@ describe('Pruebas simples para la vista de Inicio', () => {
   test('debe cargar el banner principal de bienvenida', () => {
     render(<Inicio cambiarVista={funcionVistaSimulada} />);
 
-    // Buscamos el título del banner principal
     const tituloBanner = screen.getByRole('heading', { name: /equípate para el rendimiento/i });
 
     
-    // Comprobamos que esté visible en la pantalla
     expect(tituloBanner).toBeInTheDocument();
   });
 

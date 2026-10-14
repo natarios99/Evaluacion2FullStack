@@ -2,8 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import PagoExitoso from '../vistas/PagoExitoso';
 
-// Datos falsos de la orden para la prueba
-const ordenMock = {
+const ordenFalsa = {
   id: '12345',
   nombre: 'Juan Pérez',
   correo: 'juan@example.com',
@@ -15,9 +14,8 @@ const ordenMock = {
 describe('Pruebas para PagoExitoso.jsx', () => {
 
   it('muestra los datos de la orden y del cliente correctamente', () => {
-    render(<PagoExitoso orderData={ordenMock} onBackHome={() => {}} />);
+    render(<PagoExitoso orderData={ordenFalsa} onBackHome={() => {}} />);
 
-    // Verifica que se muestre el código, datos del cliente y total
     expect(screen.getByText(/#12345/i)).toBeInTheDocument();
     expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
     expect(screen.getByText('juan@example.com')).toBeInTheDocument();
@@ -26,13 +24,11 @@ describe('Pruebas para PagoExitoso.jsx', () => {
 
   it('ejecuta la función onBackHome al hacer clic en el botón', () => {
     const fnVolver = vi.fn();
-    render(<PagoExitoso orderData={ordenMock} onBackHome={fnVolver} />);
+    render(<PagoExitoso orderData={ordenFalsa} onBackHome={fnVolver} />);
 
-    // Busca el botón y hace clic
     const boton = screen.getByText('Volver a la tienda');
     fireEvent.click(boton);
 
-    // Confirma que la función fue ejecutada
     expect(fnVolver).toHaveBeenCalledTimes(1);
   });
 

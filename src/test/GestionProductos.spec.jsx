@@ -3,7 +3,6 @@ import { describe, test, expect, vi } from 'vitest';
 import GestionProductos from '../vistas/GestionProductos';
 
 describe('Pruebas simples para la vista de Gestión de Productos', () => {
-  // Datos falsos
   const listaProductosFalsos = [
     {
       id: 1,
@@ -15,7 +14,6 @@ describe('Pruebas simples para la vista de Gestión de Productos', () => {
     }
   ];
 
-  // Simulamos las funciones obligatorias
   const funcionRecargarSimulada = vi.fn();
   const urlApiSimulada = 'http://localhost:3000/api';
 

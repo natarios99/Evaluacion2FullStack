@@ -3,7 +3,6 @@ import { describe, test, expect, vi } from 'vitest';
 import Categorias from '../vistas/Categorias';
 
 describe('Pruebas nivel estudiante para la vista de <Categorias />', () => {
-  // 1. Se crea una lista con un producto falso
   const productosSimulados = [
     {
       id: 1,
@@ -16,7 +15,6 @@ describe('Pruebas nivel estudiante para la vista de <Categorias />', () => {
     }
   ];
 
-  // 2. Función simulada simple para el botón del carrito
   const funcionCarritoSimulada = vi.fn();
 
   test('debe mostrar el título principal de la tienda', () => {

@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import CartView from '../vistas/VistaCarrito';
 
-// Datos simulados del carrito
 const carritoMock = [
   { id: 1, nombre: 'Zapatillas', precio: 30000, cantidad: 2, img: '' },
   { id: 2, nombre: 'Polera', precio: 10000, cantidad: 1, img: '' }
@@ -33,7 +32,6 @@ describe('Pruebas para CartView / VistaCarrito', () => {
       />
     );
 
-    // Verifica que se rendericen los nombres
     expect(screen.getByText('Zapatillas')).toBeInTheDocument();
     expect(screen.getByText('Polera')).toBeInTheDocument();
 
