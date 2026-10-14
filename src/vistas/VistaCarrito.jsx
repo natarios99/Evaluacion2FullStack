@@ -18,14 +18,14 @@ export default function CartView({
     setProcesando(true);
 
     try {
-      // Petición POST al endpoint de órdenes de Express
+
       const respuesta = await fetch(`${URL_API}/ordenes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          usuario_id: usuarioId, // ID del usuario registrado o null
+          usuario_id: usuarioId, 
           total: total,
           carrito: cart
         })
@@ -34,12 +34,11 @@ export default function CartView({
       if (respuesta.ok) {
         alert('¡Compra realizada con éxito y registrada en la base de datos!');
         
-        // Vaciar el carrito si se provee la función
+
         if (onClearCart) {
           onClearCart();
         }
 
-        // Ejecutar función adicional de redirección o checkout si existe
         if (onProceedToCheckout) {
           onProceedToCheckout();
         }

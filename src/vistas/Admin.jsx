@@ -1,4 +1,4 @@
-// src/pages/Admin.jsx
+
 import React, { useState, useEffect } from 'react';
 
 const URL_API = 'http://localhost:3000/api';
@@ -6,7 +6,6 @@ const URL_API = 'http://localhost:3000/api';
 export default function Admin({ setCurrentView }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Estados para datos de MySQL
   const [stats, setStats] = useState({
     compras: 0,
     probabilidadAumento: 20,
@@ -21,7 +20,7 @@ export default function Admin({ setCurrentView }) {
   const [listaOrdenes, setListaOrdenes] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // Formulario para agregar nuevo producto
+  // FFORMULARIO PARA AGREGAR PRODUCTO
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: '',
     precio: '',
@@ -30,24 +29,21 @@ export default function Admin({ setCurrentView }) {
     imagen: ''
   });
 
-  // Cargar todos los datos desde el servidor Node.js / MySQL
+  // Carga los datos de la base de datos al correrlo
   const cargarDatos = async () => {
     try {
-      // 1. Estadísticas
       const resStats = await fetch(`${URL_API}/admin/stats`);
       if (resStats.ok) {
         const dataStats = await resStats.json();
         setStats(dataStats);
       }
 
-      // 2. Productos
       const resProds = await fetch(`${URL_API}/productos`);
       if (resProds.ok) {
         const dataProds = await resProds.json();
         setListaProductos(dataProds);
       }
 
-      // 3. Usuarios (si la ruta existe en backend)
       try {
         const resUsers = await fetch(`${URL_API}/usuarios`);
         if (resUsers.ok) {
@@ -58,7 +54,6 @@ export default function Admin({ setCurrentView }) {
         console.log('No se pudo cargar la lista de usuarios.');
       }
 
-      // 4. Órdenes (si la ruta existe en backend)
       try {
         const resOrders = await fetch(`${URL_API}/ordenes`);
         if (resOrders.ok) {
@@ -80,8 +75,8 @@ export default function Admin({ setCurrentView }) {
     cargarDatos();
   }, []);
 
-  // Guardar producto en la base de datos
-  const handleAgregarProducto = async (e) => {
+  // Guarda el porducto en la bd
+  const agregarProducto = async (e) => {
     e.preventDefault();
     try {
       const res = await fetch(`${URL_API}/productos`, {
@@ -93,9 +88,9 @@ export default function Admin({ setCurrentView }) {
       if (res.ok) {
         alert('✅ Producto agregado con éxito a MySQL');
         setNuevoProducto({ nombre: '', precio: '', categoria: 'Zapatillas', stock: '', imagen: '' });
-        cargarDatos(); // Actualizar datos en pantalla
+        cargarDatos(); 
       } else {
-        alert('❌ Error al guardar el producto.');
+        alert(' Error al guardar el producto.');
       }
     } catch (error) {
       console.error('Error al enviar formulario:', error);
@@ -221,7 +216,7 @@ export default function Admin({ setCurrentView }) {
               <div className="col-md-4">
                 <div className="card p-3 shadow-sm">
                   <h4>Agregar Producto</h4>
-                  <form onSubmit={handleAgregarProducto} className="mt-2">
+                  <form onSubmit={agregarProducto} className="mt-2">
                     <div className="mb-2">
                       <label className="form-label small">Nombre</label>
                       <input 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-// Importación de Vistas
+
 import Inicio from './vistas/Inicio';
 import Categorias from './vistas/Categorias';
 import DetalleProducto from './vistas/DetalleProducto';
@@ -14,11 +14,9 @@ import VistaCarrito from './vistas/VistaCarrito';
 import PagoExitoso from './vistas/PagoExitoso';
 import PagoError from './vistas/PagoError';
 
-// 1. DEFINICIÓN GLOBAL DE LA URL DE LA API
 const URL_API = 'http://localhost:3000/api';
 
 export default function Aplicacion() {
-  // ESTADOS DE NAVEGACIÓN Y DATOS
   const [vistaActual, setVistaActual] = useState('inicio');
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   
@@ -26,7 +24,6 @@ export default function Aplicacion() {
   const [carrito, setCarrito] = useState([]);
   const [ultimoPedido, setUltimoPedido] = useState(null);
 
-  // Cargar productos de MySQL
   const cargarProductosDesdeMySQL = async () => {
     try {
       const respuesta = await fetch(`${URL_API}/productos`);
@@ -41,7 +38,6 @@ export default function Aplicacion() {
     cargarProductosDesdeMySQL();
   }, []);
 
-  // Carrito
   const agregarAlCarrito = (producto) => {
     if (producto.stock <= 0) {
       alert('Producto agotado');
@@ -72,7 +68,6 @@ export default function Aplicacion() {
     setVistaActual('detalle');
   };
 
-  // Función para procesar pago y redirigir a PagoExitoso o PagoError
   const procesarPagoYDescontarStock = async (datosCliente) => {
     if (carrito.length === 0) {
       alert('El carrito está vacío.');
@@ -113,7 +108,6 @@ export default function Aplicacion() {
     }
   };  
 
-  // CÁLCULOS DEL CARRITO
   const totalPagar = carrito.reduce((suma, item) => suma + (item.precio || 0) * (item.cantidad || 0), 0);
   const totalItemsCarrito = carrito.reduce((suma, item) => suma + (item.cantidad || 0), 0);
 
@@ -123,7 +117,7 @@ export default function Aplicacion() {
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
         <div className="container">
           <button className="navbar-brand btn btn-link text-white fw-bold text-decoration-none" onClick={() => setVistaActual('inicio')}>
-            ⚽ Tienda Deportiva
+             Tienda NATO SPORTS
           </button>
           
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
@@ -152,20 +146,18 @@ export default function Aplicacion() {
               </li>
             </ul>
 
-            {/* BOTONES DE SESIÓN Y CARRITO */}
             <div className="d-flex gap-2">
               <button className="btn btn-outline-light btn-sm" onClick={() => setVistaActual('iniciar-sesion')}>Iniciar Sesión</button>
               <button className="btn btn-primary btn-sm" onClick={() => setVistaActual('registro')}>Registro</button>
               
               <button className="btn btn-success btn-sm ms-2" onClick={() => setVistaActual('carrito')}>
-                🛒 ({totalItemsCarrito}) - ${totalPagar.toLocaleString('es-CL')}
+                 ({totalItemsCarrito}) - ${totalPagar.toLocaleString('es-CL')}
               </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* RENDERIZADO CONDICIONAL DE VISTAS */}
       <main>
         {vistaActual === 'inicio' && (
           <Inicio 
@@ -199,7 +191,6 @@ export default function Aplicacion() {
         {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} URL_API={URL_API} />}
         {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} URL_API={URL_API} />}
         
-        {/* VISTA DEL CARRITO */}
         {vistaActual === 'carrito' && (
           <VistaCarrito 
             cart={carrito}
@@ -210,7 +201,6 @@ export default function Aplicacion() {
           />
         )}
 
-        {/* VISTAS POST-PAGO */}
         {vistaActual === 'pago-exitoso' && (
           <PagoExitoso 
             orderData={ultimoPedido} 

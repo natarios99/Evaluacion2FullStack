@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-// Si recibes URL_API como prop puedes usarla, o definirla por defecto
 export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localhost:3000/api' }) {
   const [datosFormulario, setDatosFormulario] = useState({
     nombre: '',
@@ -12,14 +11,14 @@ export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localh
   const manejarRegistro = async (e) => {
     e.preventDefault();
 
-    // 1. Validar que las contraseñas coincidan
+  
     if (datosFormulario.password !== datosFormulario.confirmarPassword) {
       alert('Las contraseñas no coinciden.');
       return;
     }
 
     try {
-      // 2. Petición POST a Express para guardar en MySQL Workbench
+  
       const respuesta = await fetch(`${URL_API}/usuarios`, {
         method: 'POST',
         headers: {
@@ -32,8 +31,8 @@ export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localh
       });
 
       if (respuesta.ok) {
-        alert(`¡Cuenta creada con éxito para ${datosFormulario.nombre}!`);
-        // Redirigir a la vista de inicio de sesión
+        alert(`Cuenta creada con éxito para ${datosFormulario.nombre}`);
+
         if (cambiarVista) {
           cambiarVista('iniciar-sesion');
         }

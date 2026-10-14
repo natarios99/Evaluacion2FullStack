@@ -32,9 +32,8 @@ export default function ProductosAdmin({ cargarProductosDesdeMySQL }) {
       if (respuesta.ok) {
         alert('Producto guardado con éxito');
         if (cargarProductosDesdeMySQL) {
-          await cargarProductosDesdeMySQL(); // 
+          await cargarProductosDesdeMySQL(); 
         }
-        // Limpiar los campos del formulario tras guardar con éxito
         setProducto({
           nombre: '',
           precio: '',
@@ -53,8 +52,8 @@ export default function ProductosAdmin({ cargarProductosDesdeMySQL }) {
     }
   };
 
-  // Maneja el evento onSubmit del formulario
-  const handleSubmit = (e) => {
+
+  const guardarProd = (e) => {
     e.preventDefault();
     guardarProducto(producto);
   };
@@ -65,7 +64,7 @@ export default function ProductosAdmin({ cargarProductosDesdeMySQL }) {
       <p className="text-muted">Agrega un nuevo producto a la base de datos MySQL</p>
 
       <div className="card p-4 shadow-sm" style={{ maxWidth: '600px' }}>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={guardarProd}>
           <div className="mb-3">
             <label className="form-label fw-bold">Nombre del Producto</label>
             <input

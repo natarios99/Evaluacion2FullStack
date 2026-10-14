@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 export default function GestionProductos({ productos = [], recargarProductosDesdeMySQL, URL_API = 'http://localhost:3000/api'}) {
-  // Estado para la pestaña activa
+
   const [pestanaActiva, setPestanaActiva] = useState('productos');
 
-  // Estados para Usuarios y Órdenes desde MySQL
+
   const [usuarios, setUsuarios] = useState([]);
   const [ordenes, setOrdenes] = useState([]);
   const [cargandoOtros, setCargandoOtros] = useState(false);
 
-  // Estado del formulario de nuevo producto
+
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: '',
     precio: '',
@@ -19,7 +19,7 @@ export default function GestionProductos({ productos = [], recargarProductosDesd
     oferta: 0
   });
 
-  // Cargar datos de usuarios u órdenes al cambiar de pestaña
+
   useEffect(() => {
     const cargarDatosModulo = async () => {
       if (!URL_API) return;
@@ -49,7 +49,7 @@ export default function GestionProductos({ productos = [], recargarProductosDesd
     cargarDatosModulo();
   }, [pestanaActiva, URL_API]);
 
-  // Guardar producto en MySQL
+
   const guardarProductoEnMySQL = async (e) => {
     e.preventDefault();
 

@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -7,8 +6,7 @@ function Home() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Petición al servidor Express en puerto 3000
+  useEffect(() => { //LOCALIZAR EL ERROR CON LA BSE DE DATOOS
     fetch('http://localhost:3000/api/productos')
       .then((res) => {
         if (!res.ok) {
@@ -45,10 +43,8 @@ function Home() {
       <h1>Nuestros Productos</h1>
       <div className="grid-productos d-flex flex-wrap gap-3 mt-3">
         {productos.map((producto) => {
-          // Detectar la propiedad correcta de la imagen (imagen o img)
           const rutaImagen = producto.imagen || producto.img || '/Zapatillasrunning.webp';
-          
-          // Si la ruta ya incluye '/', la usamos directo; si no, le agregamos '/img/'
+      
           const srcFinal = rutaImagen.startsWith('/') ? rutaImagen : `/img/${rutaImagen}`;
 
           return (
