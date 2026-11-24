@@ -1,35 +1,42 @@
 import React, { useState } from 'react';
 
-export default function VistaCarrito({ 
-  cart, 
-  onUpdateQuantity, 
-  onRemove, 
-  onBuySuccess,
-  onSimulateError,
-  usuarioId = null, 
-  onClearCart, 
-  URL_API = 'http://localhost:8081/api/v1' 
+export default function VistaCarrito({
+  carrito = [],
+  actualizarCantidad,
+  eliminarDelCarrito,
+  vaciarCarrito,
+  cambiarVista,
+  onCompraExitosa,
+  URL_API = 'http://localhost:8081/api/v1'
 }) {
   const [procesando, setProcesando] = useState(false);
-  const total = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+
+  const totalCompra = carrito.reduce(
+    (acc, item) => acc + Number(item.precio) * Number(item.cantidad),
+    0
+  );
 
   const manejarCompra = async () => {
-    if (cart.length === 0) return;
-
     const token = localStorage.getItem('token');
+
     if (!token) {
-      alert('Debes iniciar sesion para realizar una compra.');
+      alert('Debes iniciar sesión para finalizar tu compra.');
+      if (cambiarVista) cambiarVista('iniciar-sesion');
       return;
     }
 
-    setProcesando(true);
+    if (carrito.length === 0) return;
 
+    setProcesando(true);
     try {
-      const carritoFormateado = cart.map(item => ({
-        id: item.id,
-        cantidad: item.cantidad,
-        precio: item.precio
-      }));
+      const payload = {
+        total: totalCompra,
+        detalles: carrito.map((item) => ({
+          productoId: item.id,
+          cantidad: item.cantidad,
+          precioUnitario: item.precio
+        }))
+      };
 
       const respuesta = await fetch(`${URL_API}/boletas`, {
         method: 'POST',
@@ -37,99 +44,153 @@ export default function VistaCarrito({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          usuarioId: usuarioId,
-          carrito: carritoFormateado
-        })
+        body: JSON.stringify(payload)
       });
 
       if (respuesta.ok) {
         const boletaCreada = await respuesta.json();
-        if (onClearCart) onClearCart();
-        if (onBuySuccess) onBuySuccess(boletaCreada);
+        if (vaciarCarrito) vaciarCarrito();
+        if (onCompraExitosa) await onCompraExitosa(boletaCreada);
+        if (cambiarVista) cambiarVista('pago-exitoso');
       } else {
-        if (onSimulateError) onSimulateError();
+        const errorData = await respuesta.json().catch(() => ({}));
+        alert(`No se pudo procesar la compra: ${errorData.error || errorData.message || 'Stock insuficiente o sesión expirada'}`);
+        if (cambiarVista) cambiarVista('pago-error');
       }
     } catch (error) {
-      console.error('Error de red al procesar la compra:', error);
-      if (onSimulateError) onSimulateError();
+      console.error('Error al registrar la boleta:', error);
+      alert('Error de conexión con el servidor al procesar el pago.');
+      if (cambiarVista) cambiarVista('pago-error');
     } finally {
       setProcesando(false);
     }
   };
 
+  if (carrito.length === 0) {
+    return (
+      <div className="container my-5 text-center">
+        <div className="card p-5 shadow-sm">
+          <h3>Tu carrito está vacío</h3>
+          <p className="text-muted">Agrega productos desde nuestro catálogo para comenzar tu compra.</p>
+          <div>
+            <button
+              className="btn btn-primary mt-2"
+              onClick={() => cambiarVista && cambiarVista('categorias')}
+            >
+              Ir a Categorías
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container my-4">
-      <div className="row">
-        <div className="col-md-12">
-          <h2>Carrito de Compras</h2>
-          {cart.length === 0 ? (
-            <div className="alert alert-info">El carrito está vacío.</div>
-          ) : (
+    <div className="container my-5">
+      <h2 className="mb-4">Carrito de Compras</h2>
+      <div className="row g-4">
+        <div className="col-lg-8">
+          <div className="card shadow-sm p-3">
             <div className="table-responsive">
-              <table className="table align-middle">
+              <table className="table align-middle mb-0">
                 <thead>
                   <tr>
-                    <th>Imagen</th>
-                    <th>Nombre</th>
+                    <th>Producto</th>
                     <th>Precio</th>
-                    <th>Cantidad</th>
+                    <th style={{ width: '140px' }}>Cantidad</th>
                     <th>Subtotal</th>
-                    <th>Acciones</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {cart.map(item => (
+                  {carrito.map((item) => (
                     <tr key={item.id}>
                       <td>
-                        <img 
-                          src={item.imagen || item.img || 'https://via.placeholder.com/50x50'} 
-                          alt={item.nombre} 
-                          width="50" 
-                          height="50"
-                          style={{ objectFit: 'cover' }}
-                        />
+                        <div className="d-flex align-items-center gap-3">
+                          <img
+                            src={item.imagen || item.img || '/Zapatillasrunning.webp'}
+                            alt={item.nombre}
+                            style={{ width: '55px', height: '55px', objectFit: 'cover', borderRadius: '6px' }}
+                          />
+                          <div>
+                            <strong>{item.nombre}</strong>
+                            <div className="small text-muted">
+                              {item.categoria?.nombre || item.categoria || 'Deportes'}
+                            </div>
+                          </div>
+                        </div>
                       </td>
-                      <td>{item.nombre}</td>
-                      <td>${item.precio.toLocaleString('es-CL')}</td>
+                      <td>${Number(item.precio).toLocaleString('es-CL')}</td>
                       <td>
-                        <input 
-                          type="number" 
-                          min="1" 
-                          max={item.stock}
-                          value={item.cantidad} 
-                          className="form-control w-50"
-                          onChange={(e) => onUpdateQuantity(item.id, parseInt(e.target.value) || 1)}
-                        />
+                        <div className="input-group input-group-sm">
+                          <button
+                            className="btn btn-outline-secondary"
+                            onClick={() => actualizarCantidad && actualizarCantidad(item.id, item.cantidad - 1)}
+                          >
+                            -
+                          </button>
+                          <span className="input-group-text bg-white">{item.cantidad}</span>
+                          <button
+                            className="btn btn-outline-secondary"
+                            disabled={item.cantidad >= item.stock}
+                            onClick={() => actualizarCantidad && actualizarCantidad(item.id, item.cantidad + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
                       </td>
-                      <td>${(item.precio * item.cantidad).toLocaleString('es-CL')}</td>
+                      <td className="fw-bold">
+                        ${(Number(item.precio) * Number(item.cantidad)).toLocaleString('es-CL')}
+                      </td>
                       <td>
-                        <button className="btn btn-danger btn-sm" onClick={() => onRemove(item.id)}>Eliminar</button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => eliminarDelCarrito && eliminarDelCarrito(item.id)}
+                        >
+                          Eliminar
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div className="d-flex justify-content-between align-items-center mt-3">
-                <h4>Total: ${total.toLocaleString('es-CL')}</h4>
-                <div className="d-flex gap-2">
-                  <button 
-                    className="btn btn-outline-danger btn-lg" 
-                    onClick={onSimulateError}
-                  >
-                    Simular Error de Pago
-                  </button>
-                  <button 
-                    className="btn btn-success btn-lg" 
-                    onClick={manejarCompra}
-                    disabled={procesando}
-                  >
-                    {procesando ? 'Procesando...' : 'Comprar ahora'}
-                  </button>
-                </div>
-              </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        <div className="col-lg-4">
+          <div className="card shadow-sm p-4">
+            <h4 className="mb-3">Resumen de Compra</h4>
+            <div className="d-flex justify-content-between mb-2">
+              <span>Productos ({carrito.reduce((acc, i) => acc + i.cantidad, 0)}):</span>
+              <span>${totalCompra.toLocaleString('es-CL')}</span>
+            </div>
+            <div className="d-flex justify-content-between mb-3">
+              <span>Envío:</span>
+              <span className="text-success fw-bold">Gratis</span>
+            </div>
+            <hr />
+            <div className="d-flex justify-content-between fs-5 fw-bold mb-4">
+              <span>Total a Pagar:</span>
+              <span>${totalCompra.toLocaleString('es-CL')}</span>
+            </div>
+
+            <button
+              className="btn btn-success w-100 mb-2"
+              onClick={manejarCompra}
+              disabled={procesando}
+            >
+              {procesando ? 'Procesando pago...' : 'Comprar ahora'}
+            </button>
+
+            <button
+              className="btn btn-outline-danger w-100"
+              onClick={() => cambiarVista && cambiarVista('pago-error')}
+              disabled={procesando}
+            >
+              Simular Error de Pago
+            </button>
+          </div>
         </div>
       </div>
     </div>

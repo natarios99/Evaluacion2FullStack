@@ -17,15 +17,15 @@ export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 
 
       if (respuesta.ok) {
         const datos = await respuesta.json();
-        
-        localStorage.setItem('token', datos.token);
-        localStorage.setItem('rol', datos.rol);
+  
+          localStorage.setItem('token', datos.token);
+          localStorage.setItem('rol', datos.rol);
+          localStorage.setItem('usuarioNombre', datos.nombre || datos.email);
+          localStorage.setItem('usuarioEmail', datos.email || credenciales.email);
 
-        alert(`¡Bienvenido de nuevo, ${datos.nombre || datos.email}!`);
-        
-        if (onLoginSuccess) {
-          onLoginSuccess(datos);
-        }
+          if (onLoginSuccess) {
+            onLoginSuccess(datos);
+          }
         
         if (cambiarVista) {
           if (datos.rol === 'ADMIN' || datos.rol === 'VENDEDOR') {

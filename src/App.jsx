@@ -17,6 +17,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from './App';
 import AdminProductos from './vistas/Admin';
 import '/css/admin.css';
+import Perfil from './vistas/Perfil';
 
 
 const URL_API = 'http://localhost:8081/api/v1';
@@ -29,6 +30,30 @@ export default function Aplicacion() {
   const [carrito, setCarrito] = useState([]);
   const [ultimoPedido, setUltimoPedido] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
+  const tokenActual = localStorage.getItem('token');
+  const estaAutenticado = Boolean(tokenActual || usuarioActual);
+  const nombreUsuario = usuarioActual?.nombre || localStorage.getItem('usuarioNombre') || 'Mi Perfil';
+  const [ultimaBoleta, setUltimaBoleta] = useState(null);
+
+  const actualizarCantidad = (id, nuevaCantidad) => {
+    if (nuevaCantidad <= 0) {
+      setCarrito(carrito.filter((item) => item.id !== id));
+      return;
+    }
+    setCarrito(
+      carrito.map((item) =>
+        item.id === id ? { ...item, cantidad: Math.min(nuevaCantidad, item.stock) } : item
+      )
+    );
+  };
+
+  const eliminarDelCarrito = (id) => {
+    setCarrito(carrito.filter((item) => item.id !== id));
+  };
+
+  const vaciarCarrito = () => {
+    setCarrito([]);
+  };
 
   const rolActual = (usuarioActual?.rol || localStorage.getItem('rol') || 'INVITADO').toUpperCase();
   const puedeVerPanel = rolActual === 'ADMIN' || rolActual === 'VENDEDOR';
@@ -64,7 +89,7 @@ export default function Aplicacion() {
     setUsuarioActual(null);
     setVistaActual('inicio');
   };
-
+  
   const agregarAlCarrito = (producto) => {
     if (producto.stock <= 0) {
       alert('Producto agotado');
@@ -86,9 +111,6 @@ export default function Aplicacion() {
     setCarrito(carrito.map(item => item.id === id ? { ...item, cantidad: nuevaCantidad } : item));
   };
 
-  const eliminarDelCarrito = (id) => {
-    setCarrito(carrito.filter(item => item.id !== id));
-  };
 
   const verDetalleProducto = (producto) => {
     setProductoSeleccionado(producto);
@@ -145,20 +167,59 @@ export default function Aplicacion() {
               </li>
               <li className="nav-item border-start ps-2 ms-2">
                 <button 
-  className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} 
-  onClick={() => setVistaActual('admin-productos')}
->
-  {rolActual === 'ADMIN' ? 'Panel Admin' : 'Panel Vendedor'}
-</button>
+                  className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} 
+                  onClick={() => setVistaActual('admin-productos')}
+                >
+                  {rolActual === 'ADMIN' ? 'Panel Admin' : 'Panel Vendedor'}
+                </button>
               </li>
             </ul>
 
             <div className="d-flex gap-2">
-              <button className="btn btn-outline-light btn-sm" onClick={() => setVistaActual('iniciar-sesion')}>Iniciar Sesión</button>
-              <button className="btn btn-primary btn-sm" onClick={() => setVistaActual('registro')}>Registro</button>
+              {!estaAutenticado ? (
+                <>
+                  <button 
+                    className="btn btn-outline-light btn-sm" 
+                    onClick={() => setVistaActual('iniciar-sesion')}
+                  >
+                    Iniciar Sesión
+                  </button>
+                  <button 
+                    className="btn btn-primary btn-sm" 
+                    onClick={() => setVistaActual('registro')}
+                  >
+                    Registro
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    className={`btn btn-sm ${vistaActual === 'perfil' ? 'btn-light text-dark fw-bold' : 'btn-outline-light'}`} 
+                    onClick={() => setVistaActual('perfil')}
+                  >
+                    👤 {nombreUsuario}
+                  </button>
+                  <button 
+                    className="btn btn-outline-danger btn-sm" 
+                    onClick={() => {
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('rol');
+                      localStorage.removeItem('usuarioNombre');
+                      localStorage.removeItem('usuarioEmail');
+                      setUsuarioActual(null);
+                      setVistaActual('inicio');
+                    }}
+                  >
+                    Salir
+                  </button>
+                </>
+              )}
               
-              <button className="btn btn-success btn-sm ms-2" onClick={() => setVistaActual('carrito')}>
-                 ({totalItemsCarrito}) - ${totalPagar.toLocaleString('es-CL')}
+              <button 
+                className="btn btn-success ms-2" 
+                onClick={() => setVistaActual('carrito')}
+              >
+                ({carrito.reduce((acc, item) => acc + item.cantidad, 0)}) - ${carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0).toLocaleString('es-CL')}
               </button>
             </div>
           </div>
@@ -195,16 +256,32 @@ export default function Aplicacion() {
         {vistaActual === 'contacto' && <Contacto />}
         
         {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} URL_API={URL_API} />}
-        {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} URL_API={URL_API} />}
-        
-        {vistaActual === 'carrito' && (
-          <VistaCarrito 
-            cart={carrito}
-            onUpdateQuantity={actualizarCantidadCarrito}
-            onRemove={eliminarDelCarrito}
-            onProceedToCheckout={procesarPagoYDescontarStock}
-            onSimulateError={() => setVistaActual('pago-error')}
+        {vistaActual === 'iniciar-sesion' && (
+          <IniciarSesion 
+            cambiarVista={setVistaActual} 
+            onLoginSuccess={setUsuarioActual} 
+            URL_API={URL_API} 
+          />
+        )}
+        {vistaActual === 'perfil' && (
+          <Perfil 
+            cambiarVista={setVistaActual}
+            onLogout={() => setUsuarioActual(null)}
             URL_API={URL_API}
+          />
+        )}
+        {vistaActual === 'carrito' && (
+          <VistaCarrito
+            carrito={carrito}
+            actualizarCantidad={actualizarCantidad}
+            eliminarDelCarrito={eliminarDelCarrito}
+            vaciarCarrito={vaciarCarrito}
+            cambiarVista={setVistaActual}
+            URL_API={URL_API}
+            onCompraExitosa={async (boletaCreada) => {
+              setUltimaBoleta(boletaCreada);
+              await cargarProductosDesdeMySQL();
+            }}
           />
         )}
 

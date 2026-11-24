@@ -90,4 +90,4 @@ SELECT p.id, p.nombre, p.precio, p.stock, p.oferta, c.nombre AS categoria
 FROM producto p
 INNER JOIN categoria c ON p.categoria_id = c.id;
 
-SELECT id, nombre, email, rol FROM usuario;
+SELECT id, nombre, email, rol FROM usuario; 
