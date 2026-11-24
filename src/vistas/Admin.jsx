@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import '/css/admin.css';
 
-const URL_API = 'http://localhost:3000/api';
+const URL_API = 'http://localhost:8081/api/v1';
 
 export default function Admin({ setCurrentView }) {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const rolUsuario = localStorage.getItem('rol') || 'CLIENTE';
+  const esAdmin = rolUsuario === 'ADMIN';
+
+  const [activeTab, setActiveTab] = useState(esAdmin ? 'dashboard' : 'productos');
   
   const [stats, setStats] = useState({
     compras: 0,
@@ -28,38 +31,41 @@ export default function Admin({ setCurrentView }) {
     imagen: ''
   });
 
+  const obtenerHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
+  });
+
   const cargarDatos = async () => {
     try {
-      const resStats = await fetch(`${URL_API}/admin/stats`);
-      if (resStats.ok) {
-        const dataStats = await resStats.json();
-        setStats(dataStats);
-      }
+      const headers = obtenerHeaders();
 
-      const resProds = await fetch(`${URL_API}/productos`);
+      const resProds = await fetch(`${URL_API}/productos`, { headers });
       if (resProds.ok) {
         const dataProds = await resProds.json();
         setListaProductos(dataProds);
       }
 
       try {
-        const resUsers = await fetch(`${URL_API}/usuarios`);
-        if (resUsers.ok) {
-          const dataUsers = await resUsers.json();
-          setListaUsuarios(dataUsers);
-        }
-      } catch (e) {
-        console.log('No se pudo cargar la lista de usuarios.');
-      }
-
-      try {
-        const resOrders = await fetch(`${URL_API}/ordenes`);
+        const resOrders = await fetch(`${URL_API}/boletas`, { headers });
         if (resOrders.ok) {
           const dataOrders = await resOrders.json();
           setListaOrdenes(dataOrders);
         }
       } catch (e) {
-        console.log('No se pudo cargar la lista de órdenes.');
+        console.log('No se pudo cargar la lista de boletas.');
+      }
+
+      if (esAdmin) {
+        try {
+          const resUsers = await fetch(`${URL_API}/usuarios`, { headers });
+          if (resUsers.ok) {
+            const dataUsers = await resUsers.json();
+            setListaUsuarios(dataUsers);
+          }
+        } catch (e) {
+          console.log('No se pudo cargar la lista de usuarios.');
+        }
       }
 
     } catch (err) {
@@ -70,6 +76,17 @@ export default function Admin({ setCurrentView }) {
   };
 
   useEffect(() => {
+    setStats({
+      compras: listaOrdenes.length,
+      probabilidadAumento: 20,
+      productos: listaProductos.length,
+      inventarioActual: listaProductos.reduce((acc, p) => acc + (Number(p.stock) || 0), 0),
+      usuarios: listaUsuarios.length,
+      nuevosUsuariosMes: listaUsuarios.length
+    });
+  }, [listaProductos, listaOrdenes, listaUsuarios]);
+
+  useEffect(() => {
     cargarDatos();
   }, []);
 
@@ -78,16 +95,21 @@ export default function Admin({ setCurrentView }) {
     try {
       const res = await fetch(`${URL_API}/productos`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevoProducto)
+        headers: obtenerHeaders(),
+        body: JSON.stringify({
+          nombre: nuevoProducto.nombre,
+          precio: Number(nuevoProducto.precio),
+          stock: Number(nuevoProducto.stock),
+          imagen: nuevoProducto.imagen
+        })
       });
 
       if (res.ok) {
-        alert('Producto agregado con exito a MySQL');
+        alert('Producto agregado con exito');
         setNuevoProducto({ nombre: '', precio: '', categoria: 'Zapatillas', stock: '', imagen: '' });
         cargarDatos(); 
       } else {
-        alert('Error al guardar el producto.');
+        alert('Error al guardar el producto. Verifica tus permisos.');
       }
     } catch (error) {
       console.error('Error al enviar formulario:', error);
@@ -95,21 +117,35 @@ export default function Admin({ setCurrentView }) {
     }
   };
 
+  const handleCerrarSesion = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('rol');
+    if (setCurrentView) {
+      setCurrentView('inicio');
+    } else {
+      window.location.href = '/';
+    }
+  };
+
   if (cargando) {
-    return <div style={{ padding: '20px', textAlign: 'center' }}><p>Cargando panel de administracion...</p></div>;
+    return <div style={{ padding: '20px', textAlign: 'center' }}><p>Cargando panel...</p></div>;
   }
 
   return (
     <div className="admin-contenedor">
       <aside className="admin-sidebar">
-        <h4 className="admin-sidebar-titulo">Panel Admin</h4>
+        <h4 className="admin-sidebar-titulo">
+          {esAdmin ? 'Panel Admin' : 'Panel Vendedor'}
+        </h4>
         <div className="admin-menu">
-          <button 
-            className={`admin-btn-tab ${activeTab === 'dashboard' ? 'activo' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            Dashboard
-          </button>
+          {esAdmin && (
+            <button 
+              className={`admin-btn-tab ${activeTab === 'dashboard' ? 'activo' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              Dashboard
+            </button>
+          )}
           <button 
             className={`admin-btn-tab ${activeTab === 'productos' ? 'activo' : ''}`}
             onClick={() => setActiveTab('productos')}
@@ -122,28 +158,30 @@ export default function Admin({ setCurrentView }) {
           >
             Ordenes
           </button>
-          <button 
-            className={`admin-btn-tab ${activeTab === 'usuarios' ? 'activo' : ''}`}
-            onClick={() => setActiveTab('usuarios')}
-          >
-            Usuarios
-          </button>
+          {esAdmin && (
+            <button 
+              className={`admin-btn-tab ${activeTab === 'usuarios' ? 'activo' : ''}`}
+              onClick={() => setActiveTab('usuarios')}
+            >
+              Usuarios
+            </button>
+          )}
         </div>
 
         <hr className="admin-divider" />
 
         <div className="admin-sidebar-acciones">
-          <button className="admin-btn-tienda" onClick={() => setCurrentView ? setCurrentView('home') : (window.location.href = '/')}>
+          <button className="admin-btn-tienda" onClick={() => setCurrentView ? setCurrentView('inicio') : (window.location.href = '/')}>
             Ir a Tienda
           </button>
-          <button className="admin-btn-logout" onClick={() => alert('Cerrando sesion...')}>
+          <button className="admin-btn-logout" onClick={handleCerrarSesion}>
             Cerrar Sesion
           </button>
         </div>
       </aside>
 
       <main className="admin-contenido">
-        {activeTab === 'dashboard' && (
+        {esAdmin && activeTab === 'dashboard' && (
           <div>
             <h2>Dashboard</h2>
             <p style={{ color: '#6c757d' }}>Resumen de las actividades diarias</p>
@@ -179,7 +217,7 @@ export default function Admin({ setCurrentView }) {
                 <h5>Usuarios</h5>
                 <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Administrar cuentas registradas</p>
               </div>
-              <div className="admin-card-acceso" onClick={() => setCurrentView ? setCurrentView('home') : (window.location.href = '/')}>
+              <div className="admin-card-acceso" onClick={() => setCurrentView ? setCurrentView('inicio') : (window.location.href = '/')}>
                 <h5>Ver Tienda</h5>
                 <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Visualizar la web publica</p>
               </div>
@@ -189,65 +227,67 @@ export default function Admin({ setCurrentView }) {
 
         {activeTab === 'productos' && (
           <div>
-            <h2>Gestion de Productos</h2>
+            <h2>{esAdmin ? 'Gestion de Productos' : 'Lista de Productos'}</h2>
             <div className="admin-grid-gestion">
-              <div className="admin-col-formulario">
-                <div className="admin-card">
-                  <h4>Agregar Producto</h4>
-                  <form onSubmit={agregarProducto}>
-                    <div className="admin-campo">
-                      <label>Nombre</label>
-                      <input 
-                        type="text" 
-                        className="admin-input" 
-                        value={nuevoProducto.nombre} 
-                        onChange={(e) => setNuevoProducto({...nuevoProducto, nombre: e.target.value})} 
-                        required 
-                      />
-                    </div>
-                    <div className="admin-campo">
-                      <label>Precio ($)</label>
-                      <input 
-                        type="number" 
-                        className="admin-input" 
-                        value={nuevoProducto.precio} 
-                        onChange={(e) => setNuevoProducto({...nuevoProducto, precio: e.target.value})} 
-                        required 
-                      />
-                    </div>
-                    <div className="admin-campo">
-                      <label>Categoria</label>
-                      <input 
-                        type="text" 
-                        className="admin-input" 
-                        value={nuevoProducto.categoria} 
-                        onChange={(e) => setNuevoProducto({...nuevoProducto, categoria: e.target.value})} 
-                      />
-                    </div>
-                    <div className="admin-campo">
-                      <label>Stock</label>
-                      <input 
-                        type="number" 
-                        className="admin-input" 
-                        value={nuevoProducto.stock} 
-                        onChange={(e) => setNuevoProducto({...nuevoProducto, stock: e.target.value})} 
-                        required 
-                      />
-                    </div>
-                    <div className="admin-campo">
-                      <label>Imagen (Ruta)</label>
-                      <input 
-                        type="text" 
-                        className="admin-input" 
-                        placeholder="/Zapatillasrunning.webp"
-                        value={nuevoProducto.imagen} 
-                        onChange={(e) => setNuevoProducto({...nuevoProducto, imagen: e.target.value})} 
-                      />
-                    </div>
-                    <button type="submit" className="admin-btn-guardar">Guardar en MySQL</button>
-                  </form>
+              {esAdmin && (
+                <div className="admin-col-formulario">
+                  <div className="admin-card">
+                    <h4>Agregar Producto</h4>
+                    <form onSubmit={agregarProducto}>
+                      <div className="admin-campo">
+                        <label>Nombre</label>
+                        <input 
+                          type="text" 
+                          className="admin-input" 
+                          value={nuevoProducto.nombre} 
+                          onChange={(e) => setNuevoProducto({...nuevoProducto, nombre: e.target.value})} 
+                          required 
+                        />
+                      </div>
+                      <div className="admin-campo">
+                        <label>Precio ($)</label>
+                        <input 
+                          type="number" 
+                          className="admin-input" 
+                          value={nuevoProducto.precio} 
+                          onChange={(e) => setNuevoProducto({...nuevoProducto, precio: e.target.value})} 
+                          required 
+                        />
+                      </div>
+                      <div className="admin-campo">
+                        <label>Categoria</label>
+                        <input 
+                          type="text" 
+                          className="admin-input" 
+                          value={nuevoProducto.categoria} 
+                          onChange={(e) => setNuevoProducto({...nuevoProducto, categoria: e.target.value})} 
+                        />
+                      </div>
+                      <div className="admin-campo">
+                        <label>Stock</label>
+                        <input 
+                          type="number" 
+                          className="admin-input" 
+                          value={nuevoProducto.stock} 
+                          onChange={(e) => setNuevoProducto({...nuevoProducto, stock: e.target.value})} 
+                          required 
+                        />
+                      </div>
+                      <div className="admin-campo">
+                        <label>Imagen (Ruta)</label>
+                        <input 
+                          type="text" 
+                          className="admin-input" 
+                          placeholder="/Zapatillasrunning.webp"
+                          value={nuevoProducto.imagen} 
+                          onChange={(e) => setNuevoProducto({...nuevoProducto, imagen: e.target.value})} 
+                        />
+                      </div>
+                      <button type="submit" className="admin-btn-guardar">Guardar en Base de Datos</button>
+                    </form>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="admin-col-tabla">
                 <div className="admin-card">
@@ -274,7 +314,7 @@ export default function Admin({ setCurrentView }) {
                                 {p.stock}
                               </span>
                             </td>
-                            <td>{p.categoria || 'Sin categoria'}</td>
+                            <td>{p.categoria?.nombre || p.categoria || 'Sin categoria'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -288,7 +328,7 @@ export default function Admin({ setCurrentView }) {
 
         {activeTab === 'ordenes' && (
           <div>
-            <h2>Gestion de Ordenes</h2>
+            <h2>{esAdmin ? 'Gestion de Ordenes' : 'Lista de Ordenes'}</h2>
             <div className="admin-card" style={{ marginTop: '16px' }}>
               {listaOrdenes.length === 0 ? (
                 <div className="admin-alerta-vacio">No hay ordenes registradas.</div>
@@ -297,8 +337,8 @@ export default function Admin({ setCurrentView }) {
                   <table className="admin-tabla">
                     <thead>
                       <tr>
-                        <th>ID Orden</th>
-                        <th>ID Usuario</th>
+                        <th>ID Boleta</th>
+                        <th>Cliente</th>
                         <th>Total</th>
                         <th>Fecha</th>
                       </tr>
@@ -307,7 +347,7 @@ export default function Admin({ setCurrentView }) {
                       {listaOrdenes.map((o) => (
                         <tr key={o.id}>
                           <td>#{o.id}</td>
-                          <td>{o.usuario_id || 'Invitado'}</td>
+                          <td>{o.usuario?.nombre || o.usuario_id || 'Invitado'}</td>
                           <td>${Number(o.total).toLocaleString()}</td>
                           <td>{o.fecha ? new Date(o.fecha).toLocaleString() : 'N/A'}</td>
                         </tr>
@@ -320,7 +360,7 @@ export default function Admin({ setCurrentView }) {
           </div>
         )}
 
-        {activeTab === 'usuarios' && (
+        {esAdmin && activeTab === 'usuarios' && (
           <div>
             <h2>Gestion de Usuarios</h2>
             <div className="admin-card" style={{ marginTop: '16px' }}>
@@ -334,6 +374,7 @@ export default function Admin({ setCurrentView }) {
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Email</th>
+                        <th>Rol</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -342,6 +383,7 @@ export default function Admin({ setCurrentView }) {
                           <td>{u.id}</td>
                           <td>{u.nombre}</td>
                           <td>{u.email}</td>
+                          <td>{u.rol}</td>
                         </tr>
                       ))}
                     </tbody>

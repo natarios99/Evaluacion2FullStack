@@ -8,12 +8,12 @@ import Blogs from './vistas/Blogs';
 import Contacto from './vistas/Contacto';
 import RegistroUsuario from './vistas/RegistroUsuario';
 import IniciarSesion from './vistas/IniciarSesion';
-import GestionProductos from './vistas/GestionProductos';
+import Admin from './vistas/Admin';
 import VistaCarrito from './vistas/VistaCarrito';
 import PagoExitoso from './vistas/PagoExitoso';
 import PagoError from './vistas/PagoError';
 
-const URL_API = 'http://localhost:3000/api';
+const URL_API = 'http://localhost:8081/api/v1';
 
 export default function Aplicacion() {
   const [vistaActual, setVistaActual] = useState('inicio');
@@ -22,12 +22,18 @@ export default function Aplicacion() {
   const [productos, setProductos] = useState([]);
   const [carrito, setCarrito] = useState([]);
   const [ultimoPedido, setUltimoPedido] = useState(null);
+  const [usuarioActual, setUsuarioActual] = useState(null);
+
+  const rolActual = usuarioActual?.rol || localStorage.getItem('rol') || 'INVITADO';
+  const puedeVerPanel = rolActual === 'ADMIN' || rolActual === 'VENDEDOR';
 
   const cargarProductosDesdeMySQL = async () => {
     try {
       const respuesta = await fetch(`${URL_API}/productos`);
-      const datos = await respuesta.json();
-      setProductos(datos);
+      if (respuesta.ok) {
+        const datos = await respuesta.json();
+        setProductos(datos);
+      }
     } catch (error) {
       console.error('Error al conectar con la base de datos:', error);
     }
@@ -36,6 +42,22 @@ export default function Aplicacion() {
   useEffect(() => {
     cargarProductosDesdeMySQL();
   }, []);
+
+  const manejarLoginExitoso = (datosUsuario) => {
+    setUsuarioActual(datosUsuario);
+    if (datosUsuario.rol === 'ADMIN' || datosUsuario.rol === 'VENDEDOR') {
+      setVistaActual('admin-productos');
+    } else {
+      setVistaActual('categorias');
+    }
+  };
+
+  const cerrarSesion = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('rol');
+    setUsuarioActual(null);
+    setVistaActual('inicio');
+  };
 
   const agregarAlCarrito = (producto) => {
     if (producto.stock <= 0) {
@@ -67,45 +89,17 @@ export default function Aplicacion() {
     setVistaActual('detalle');
   };
 
-  const procesarPagoYDescontarStock = async (datosCliente) => {
-    if (carrito.length === 0) {
-      alert('El carrito está vacío.');
-      return;
-    }
+  const manejarCompraExitosa = async (boletaCreada) => {
+    setUltimoPedido({
+      id: boletaCreada.id,
+      nombre: usuarioActual?.nombre || 'Cliente Registrado',
+      correo: usuarioActual?.email || 'cliente@ejemplo.com',
+      total: boletaCreada.total
+    });
 
-    const clienteValido = (datosCliente && typeof datosCliente === 'object' && !datosCliente.target && !datosCliente.nativeEvent)
-      ? datosCliente
-      : { nombre: 'Cliente Registrado', email: 'cliente@ejemplo.com' };
-
-    const totalCalculado = carrito.reduce((suma, item) => suma + (item.precio || 0) * (item.cantidad || 0), 0);
-
-    try {
-      const respuesta = await fetch(`${URL_API}/comprar`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify({ carrito, cliente: clienteValido })
-      });
-
-      if (respuesta.ok) {
-        setUltimoPedido({
-          ...clienteValido,
-          total: totalCalculado,
-          id: Math.floor(100000 + Math.random() * 900000)
-        });
-
-        setCarrito([]);
-        await cargarProductosDesdeMySQL();
-        setVistaActual('pago-exitoso');
-      } else {
-        setVistaActual('pago-error');
-      }
-    } catch (error) {
-      console.error('Error al procesar la compra:', error);
-      setVistaActual('pago-error');
-    }
-  };  
+    await cargarProductosDesdeMySQL();
+    setVistaActual('pago-exitoso');
+  };
 
   const totalPagar = carrito.reduce((suma, item) => suma + (item.precio || 0) * (item.cantidad || 0), 0);
   const totalItemsCarrito = carrito.reduce((suma, item) => suma + (item.cantidad || 0), 0);
@@ -139,14 +133,27 @@ export default function Aplicacion() {
               <li className="nav-item">
                 <button className={`nav-link btn ${vistaActual === 'contacto' ? 'active fw-bold' : ''}`} onClick={() => setVistaActual('contacto')}>Contacto</button>
               </li>
-              <li className="nav-item border-start ps-2 ms-2">
-                <button className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} onClick={() => setVistaActual('admin-productos')}>Panel Admin</button>
-              </li>
+              {puedeVerPanel && (
+                <li className="nav-item border-start ps-2 ms-2">
+                  <button className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} onClick={() => setVistaActual('admin-productos')}>
+                    {rolActual === 'ADMIN' ? 'Panel Admin' : 'Panel Vendedor'}
+                  </button>
+                </li>
+              )}
             </ul>
 
-            <div className="d-flex gap-2">
-              <button className="btn btn-outline-light btn-sm" onClick={() => setVistaActual('iniciar-sesion')}>Iniciar Sesión</button>
-              <button className="btn btn-primary btn-sm" onClick={() => setVistaActual('registro')}>Registro</button>
+            <div className="d-flex gap-2 align-items-center">
+              {localStorage.getItem('token') ? (
+                <>
+                  <span className="text-light small me-2">Rol: {rolActual}</span>
+                  <button className="btn btn-outline-danger btn-sm" onClick={cerrarSesion}>Cerrar Sesión</button>
+                </>
+              ) : (
+                <>
+                  <button className="btn btn-outline-light btn-sm" onClick={() => setVistaActual('iniciar-sesion')}>Iniciar Sesión</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setVistaActual('registro')}>Registro</button>
+                </>
+              )}
               
               <button className="btn btn-success btn-sm ms-2" onClick={() => setVistaActual('carrito')}>
                  ({totalItemsCarrito}) - ${totalPagar.toLocaleString('es-CL')}
@@ -186,14 +193,22 @@ export default function Aplicacion() {
         {vistaActual === 'contacto' && <Contacto />}
         
         {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} URL_API={URL_API} />}
-        {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} URL_API={URL_API} />}
+        {vistaActual === 'iniciar-sesion' && (
+          <IniciarSesion 
+            cambiarVista={setVistaActual} 
+            onLoginSuccess={manejarLoginExitoso} 
+            URL_API={URL_API} 
+          />
+        )}
         
         {vistaActual === 'carrito' && (
           <VistaCarrito 
             cart={carrito}
+            usuarioId={usuarioActual?.id || null}
             onUpdateQuantity={actualizarCantidadCarrito}
             onRemove={eliminarDelCarrito}
-            onProceedToCheckout={procesarPagoYDescontarStock}
+            onClearCart={() => setCarrito([])}
+            onBuySuccess={manejarCompraExitosa}
             onSimulateError={() => setVistaActual('pago-error')}
             URL_API={URL_API}
           />
@@ -212,11 +227,9 @@ export default function Aplicacion() {
           />
         )}
 
-        {vistaActual === 'admin-productos' && (
-          <GestionProductos 
-            productos={productos} 
-            recargarProductosDesdeMySQL={cargarProductosDesdeMySQL} 
-            URL_API={URL_API} 
+        {vistaActual === 'admin-productos' && puedeVerPanel && (
+          <Admin 
+            setCurrentView={setVistaActual} 
           />
         )}
       </main>

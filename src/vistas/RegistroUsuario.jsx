@@ -1,38 +1,38 @@
 import React, { useState } from 'react';
 
-export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localhost:3000/api' }) {
+export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localhost:8081/api/v1' }) {
   const [datosFormulario, setDatosFormulario] = useState({
     nombre: '',
     email: '',
     password: '',
-    confirmarPassword: ''
+    confirmarPassword: '',
+    rol: 'CLIENTE'
   });
 
   const manejarRegistro = async (e) => {
     e.preventDefault();
 
-  
     if (datosFormulario.password !== datosFormulario.confirmarPassword) {
       alert('Las contraseñas no coinciden.');
       return;
     }
 
     try {
-  
-      const respuesta = await fetch(`${URL_API}/usuarios`, {
+      const respuesta = await fetch(`${URL_API}/auth/registro`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           nombre: datosFormulario.nombre,
-          email: datosFormulario.email
+          email: datosFormulario.email,
+          password: datosFormulario.password,
+          rol: datosFormulario.rol
         })
       });
 
       if (respuesta.ok) {
         alert(`Cuenta creada con éxito para ${datosFormulario.nombre}`);
-
         if (cambiarVista) {
           cambiarVista('iniciar-sesion');
         }
@@ -90,6 +90,18 @@ export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localh
               onChange={e => setDatosFormulario({...datosFormulario, confirmarPassword: e.target.value})} 
               required 
             />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Rol de Usuario</label>
+            <select 
+              className="form-select" 
+              value={datosFormulario.rol} 
+              onChange={e => setDatosFormulario({...datosFormulario, rol: e.target.value})}
+            >
+              <option value="CLIENTE">Cliente</option>
+              <option value="VENDEDOR">Vendedor</option>
+              <option value="ADMIN">Administrador</option>
+            </select>
           </div>
           <button type="submit" className="btn btn-primary w-100">Registrarse</button>
         </form>

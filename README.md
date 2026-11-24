@@ -6,10 +6,7 @@ FLUSH PRIVILEGES;
 
 CREATE DATABASE IF NOT EXISTS deportes_db;
 USE deportes_db;
-drop table productos;
-show tables;
-DESCRIBE productos;
-TRUNCATE TABLE usuarios;
+
 
 
 CREATE TABLE IF NOT EXISTS productos (

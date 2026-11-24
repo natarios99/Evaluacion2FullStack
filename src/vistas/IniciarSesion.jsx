@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 
-export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 'http://localhost:3000/api' }) {
+export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 'http://localhost:8081/api/v1' }) {
   const [credenciales, setCredenciales] = useState({ email: '', password: '' });
   const [cargando, setCargando] = useState(false);
 
   const manejarInicio = async (e) => {
     e.preventDefault();
     setCargando(true);
+  
 
     try {
       const respuesta = await fetch(`${URL_API}/login`, {
@@ -17,6 +18,8 @@ export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 
 
       if (respuesta.ok) {
         const usuario = await respuesta.json();
+        localStorage.setItem('token', datos.token);
+        localStorage.setItem('rol', datos.rol);
         alert(`¡Bienvenido de nuevo, ${usuario.nombre || usuario.email}!`);
         
         if (onLoginSuccess) {

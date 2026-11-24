@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function GestionProductos({ productos = [], recargarProductosDesdeMySQL, URL_API = 'http://localhost:3000/api'}) {
+export default function GestionProductos({ productos = [], recargarProductosDesdeMySQL, URL_API = 'http://localhost:8081/api/v1' }) {
 
   const [pestanaActiva, setPestanaActiva] = useState('productos');
 

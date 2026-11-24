@@ -4,11 +4,11 @@ export default function VistaCarrito({
   cart, 
   onUpdateQuantity, 
   onRemove, 
-  onProceedToCheckout, 
+  onBuySuccess,
   onSimulateError,
   usuarioId = null, 
   onClearCart, 
-  URL_API = 'http://localhost:3000/api' 
+  URL_API = 'http://localhost:8081/api/v1' 
 }) {
   const [procesando, setProcesando] = useState(false);
   const total = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
@@ -16,38 +16,43 @@ export default function VistaCarrito({
   const manejarCompra = async () => {
     if (cart.length === 0) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Debes iniciar sesion para realizar una compra.');
+      return;
+    }
+
     setProcesando(true);
 
     try {
-      const respuesta = await fetch(`${URL_API}/ordenes`, {
+      const carritoFormateado = cart.map(item => ({
+        id: item.id,
+        cantidad: item.cantidad,
+        precio: item.precio
+      }));
+
+      const respuesta = await fetch(`${URL_API}/boletas`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          usuario_id: usuarioId, 
-          total: total,
-          carrito: cart
+          usuarioId: usuarioId,
+          carrito: carritoFormateado
         })
       });
 
       if (respuesta.ok) {
-
-
-        if (onClearCart) {
-          onClearCart();
-        }
-
-        if (onProceedToCheckout) {
-          onProceedToCheckout();
-        }
+        const boletaCreada = await respuesta.json();
+        if (onClearCart) onClearCart();
+        if (onBuySuccess) onBuySuccess(boletaCreada);
       } else {
-        const errorData = await respuesta.json().catch(() => ({}));
-        alert(`Error al procesar la compra: ${errorData.error || 'Inténtalo de nuevo'}`);
+        if (onSimulateError) onSimulateError();
       }
     } catch (error) {
       console.error('Error de red al procesar la compra:', error);
-      alert('No se pudo conectar con el servidor.');
+      if (onSimulateError) onSimulateError();
     } finally {
       setProcesando(false);
     }
@@ -91,6 +96,7 @@ export default function VistaCarrito({
                         <input 
                           type="number" 
                           min="1" 
+                          max={item.stock}
                           value={item.cantidad} 
                           className="form-control w-50"
                           onChange={(e) => onUpdateQuantity(item.id, parseInt(e.target.value) || 1)}

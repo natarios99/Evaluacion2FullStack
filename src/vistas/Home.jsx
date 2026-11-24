@@ -7,7 +7,7 @@ function Home() {
   const [error, setError] = useState(null);
 
   useEffect(() => { //LOCALIZAR EL ERROR CON LA BSE DE DATOOS
-    fetch('http://localhost:3000/api/productos')
+    fetch('http://localhost:8081/api/productos')
       .then((res) => {
         if (!res.ok) {
           throw new Error('Error al conectar con el servidor backend.');
