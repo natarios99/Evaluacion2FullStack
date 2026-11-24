@@ -16,6 +16,7 @@ import ReactDOM from 'react-dom/client';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from './App';
 import AdminProductos from './vistas/Admin';
+import '/css/admin.css';
 
 
 const URL_API = 'http://localhost:8081/api/v1';
@@ -29,7 +30,7 @@ export default function Aplicacion() {
   const [ultimoPedido, setUltimoPedido] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
 
-  const rolActual = usuarioActual?.rol || localStorage.getItem('rol') || 'INVITADO';
+  const rolActual = (usuarioActual?.rol || localStorage.getItem('rol') || 'INVITADO').toUpperCase();
   const puedeVerPanel = rolActual === 'ADMIN' || rolActual === 'VENDEDOR';
 
   const cargarProductosDesdeMySQL = async () => {
@@ -139,8 +140,16 @@ export default function Aplicacion() {
               <li className="nav-item">
                 <button className={`nav-link btn ${vistaActual === 'contacto' ? 'active fw-bold' : ''}`} onClick={() => setVistaActual('contacto')}>Contacto</button>
               </li>
+              <li className="nav-item">
+                <button className={`nav-link btn ${vistaActual === 'Admin' ? 'active fw-bold' : ''}`} onClick={() => setVistaActual('Admin')}>Admin</button>
+              </li>
               <li className="nav-item border-start ps-2 ms-2">
-                <button className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} onClick={() => setVistaActual('admin-productos')}>Panel Admin</button>
+                <button 
+  className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} 
+  onClick={() => setVistaActual('admin-productos')}
+>
+  {rolActual === 'ADMIN' ? 'Panel Admin' : 'Panel Vendedor'}
+</button>
               </li>
             </ul>
 
@@ -212,14 +221,14 @@ export default function Aplicacion() {
           />
         )}
 
-        {vistaActual === 'admin-productos' && (
-          <GestionProductos 
-            productos={productos} 
-            recargarProductosDesdeMySQL={cargarProductosDesdeMySQL} 
-            URL_API={URL_API} 
+        {vistaActual === 'admin-productos' && puedeVerPanel && (
+          <Admin 
+            setCurrentView={setVistaActual}
+            onProductChange={cargarProductosDesdeMySQL}
           />
         )}
       </main>
     </div>
+    </GoogleOAuthProvider>
   );
 }

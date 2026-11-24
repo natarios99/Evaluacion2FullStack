@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import '/css/categorias.css';
 
-export default function Categorias({ productos, agregarAlCarrito, verDetalle }) {
+export default function Categorias({ productos = [], agregarAlCarrito, verDetalle }) {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
 
   const listaCategorias = ['Todas', 'Calzado', 'Ropa', 'Fútbol', 'Fitness', 'Tenis', 'Suplementos', 'Ciclismo', 'Accesorios'];
 
   const productosFiltrados = categoriaSeleccionada === 'Todas' 
-    ? productos 
-    : productos.filter(p => p.categoria === categoriaSeleccionada);
+  ? productos 
+  : productos.filter(p => (p.categoria?.nombre || p.categoria) === categoriaSeleccionada);
 
   return (
     <div className="categorias-contenedor">
@@ -47,7 +47,7 @@ export default function Categorias({ productos, agregarAlCarrito, verDetalle }) 
             />
 
             <div className="info-producto">
-              <span className="categoria-etiqueta">{producto.categoria}</span>
+              <span className="categoria-etiqueta">{producto.categoria?.nombre || producto.categoria || 'General'}</span>
               <h5 className="nombre-producto" onClick={() => verDetalle && verDetalle(producto)}>
                 {producto.nombre}
               </h5>

@@ -3,8 +3,8 @@ import '/css/admin.css';
 
 const URL_API = 'http://localhost:8081/api/v1';
 
-export default function Admin({ setCurrentView }) {
-  const rolUsuario = localStorage.getItem('rol') || 'CLIENTE';
+export default function Admin({ setCurrentView, onProductChange }) {
+  const rolUsuario = (localStorage.getItem('rol') || 'CLIENTE').toUpperCase();
   const esAdmin = rolUsuario === 'ADMIN';
 
   const [activeTab, setActiveTab] = useState(esAdmin ? 'dashboard' : 'productos');
@@ -24,11 +24,11 @@ export default function Admin({ setCurrentView }) {
   const [cargando, setCargando] = useState(true);
 
   const [nuevoProducto, setNuevoProducto] = useState({
-    nombre: '',
-    precio: '',
-    categoria: 'Zapatillas',
-    stock: '',
-    imagen: ''
+  nombre: '',
+  precio: '',
+  categoria: 'Calzado',
+  stock: '',
+  imagen: ''
   });
 
   const obtenerHeaders = () => ({
@@ -100,14 +100,21 @@ export default function Admin({ setCurrentView }) {
           nombre: nuevoProducto.nombre,
           precio: Number(nuevoProducto.precio),
           stock: Number(nuevoProducto.stock),
-          imagen: nuevoProducto.imagen
+          imagen: nuevoProducto.imagen,
+          categoria: nuevoProducto.categoria
         })
       });
 
       if (res.ok) {
         alert('Producto agregado con exito');
         setNuevoProducto({ nombre: '', precio: '', categoria: 'Zapatillas', stock: '', imagen: '' });
-        cargarDatos(); 
+        await cargarDatos();
+        if (onProductChange) {
+          await onProductChange();
+        }
+        if (onProductChange) {
+          await onProductChange();
+        }
       } else {
         alert('Error al guardar el producto. Verifica tus permisos.');
       }
@@ -256,12 +263,20 @@ export default function Admin({ setCurrentView }) {
                       </div>
                       <div className="admin-campo">
                         <label>Categoria</label>
-                        <input 
-                          type="text" 
+                        <select 
                           className="admin-input" 
                           value={nuevoProducto.categoria} 
-                          onChange={(e) => setNuevoProducto({...nuevoProducto, categoria: e.target.value})} 
-                        />
+                          onChange={(e) => setNuevoProducto({...nuevoProducto, categoria: e.target.value})}
+                        >
+                          <option value="Calzado">Calzado</option>
+                          <option value="Ropa">Ropa</option>
+                          <option value="Fútbol">Fútbol</option>
+                          <option value="Fitness">Fitness</option>
+                          <option value="Tenis">Tenis</option>
+                          <option value="Suplementos">Suplementos</option>
+                          <option value="Ciclismo">Ciclismo</option>
+                          <option value="Accesorios">Accesorios</option>
+                        </select>
                       </div>
                       <div className="admin-campo">
                         <label>Stock</label>
