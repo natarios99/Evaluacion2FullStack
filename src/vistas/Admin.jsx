@@ -26,12 +26,14 @@ export default function Admin({ setCurrentView, onProductChange }) {
     productos: 0,
     inventarioActual: 0,
     usuarios: 0,
-    nuevosUsuariosMes: 0
+    nuevosUsuariosMes: 0,
+    contactos: 0
   });
 
   const [listaProductos, setListaProductos] = useState([]);
   const [listaUsuarios, setListaUsuarios] = useState([]);
   const [listaOrdenes, setListaOrdenes] = useState([]);
+  const [listaContactos, setListaContactos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [notificacion, setNotificacion] = useState(null);
 
@@ -45,6 +47,8 @@ export default function Admin({ setCurrentView, onProductChange }) {
 
   const [editandoId, setEditandoId] = useState(null);
   const [confirmandoEliminarId, setConfirmandoEliminarId] = useState(null);
+  const [confirmandoEliminarContactoId, setConfirmandoEliminarContactoId] = useState(null);
+
   const [datosEdicion, setDatosEdicion] = useState({
     precio: '',
     stock: '',
@@ -58,21 +62,27 @@ export default function Admin({ setCurrentView, onProductChange }) {
     }, 3000);
   };
 
-  const obtenerHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('token')}`
-  });
+  const obtenerHeaders = () => {
+    const rawToken = localStorage.getItem('token') || '';
+    const tokenLimpio = rawToken.replace(/^"|"$/g, '').trim();
+    return {
+      'Content-Type': 'application/json',
+      ...(tokenLimpio ? { 'Authorization': `Bearer ${tokenLimpio}` } : {})
+    };
+  };
 
   const cargarDatos = async () => {
     try {
       const headers = obtenerHeaders();
 
+      // 1. Productos
       const resProds = await fetch(`${URL_API}/productos`, { headers });
       if (resProds.ok) {
         const dataProds = await resProds.json();
         setListaProductos(dataProds);
       }
 
+      // 2. Órdenes (Boletas)
       try {
         const resOrders = await fetch(`${URL_API}/boletas`, { headers });
         if (resOrders.ok) {
@@ -83,6 +93,18 @@ export default function Admin({ setCurrentView, onProductChange }) {
         console.log('No se pudo cargar la lista de boletas.');
       }
 
+      // 3. Contactos / Soporte
+      try {
+        const resContactos = await fetch(`${URL_API}/contactos`, { headers });
+        if (resContactos.ok) {
+          const dataContactos = await resContactos.json();
+          setListaContactos(dataContactos);
+        }
+      } catch (e) {
+        console.log('No se pudo cargar la lista de contactos.');
+      }
+
+      // 4. Usuarios (Solo ADMIN)
       if (esAdmin) {
         try {
           const resUsers = await fetch(`${URL_API}/usuarios`, { headers });
@@ -108,9 +130,10 @@ export default function Admin({ setCurrentView, onProductChange }) {
       productos: listaProductos.length,
       inventarioActual: listaProductos.reduce((acc, p) => acc + (Number(p.stock) || 0), 0),
       usuarios: listaUsuarios.length,
-      nuevosUsuariosMes: listaUsuarios.length
+      nuevosUsuariosMes: listaUsuarios.length,
+      contactos: listaContactos.length
     });
-  }, [listaProductos, listaOrdenes, listaUsuarios]);
+  }, [listaProductos, listaOrdenes, listaUsuarios, listaContactos]);
 
   useEffect(() => {
     cargarDatos();
@@ -135,7 +158,7 @@ export default function Admin({ setCurrentView, onProductChange }) {
         setNuevoProducto({ nombre: '', precio: '', categoria: 'Calzado', stock: '', imagen: '' });
         await cargarDatos();
         if (onProductChange) await onProductChange();
-        mostrarMensaje('Producto agregado al inventario', 'success');
+        mostrarMensaje('Producto agregado al inventario.', 'success');
       } else {
         mostrarMensaje('No se pudo guardar el producto. Verifica tus permisos.', 'danger');
       }
@@ -206,6 +229,27 @@ export default function Admin({ setCurrentView, onProductChange }) {
     }
   };
 
+  const eliminarContacto = async (id) => {
+    try {
+      const res = await fetch(`${URL_API}/contactos/${id}`, {
+        method: 'DELETE',
+        headers: obtenerHeaders()
+      });
+
+      if (res.ok) {
+        setConfirmandoEliminarContactoId(null);
+        await cargarDatos();
+        mostrarMensaje('Mensaje de contacto eliminado.', 'success');
+      } else {
+        setConfirmandoEliminarContactoId(null);
+        mostrarMensaje('No se pudo eliminar el mensaje.', 'danger');
+      }
+    } catch (error) {
+      console.error('Error al eliminar contacto:', error);
+      mostrarMensaje('Error de conexión con el servidor.', 'danger');
+    }
+  };
+
   const handleCerrarSesion = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('rol');
@@ -219,11 +263,16 @@ export default function Admin({ setCurrentView, onProductChange }) {
   };
 
   if (cargando) {
-    return <div style={{ padding: '20px', textAlign: 'center' }}><p>Cargando panel...</p></div>;
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <p>Cargando panel de administración...</p>
+      </div>
+    );
   }
 
   return (
     <div className="admin-contenedor">
+      {/* BARRA LATERAL */}
       <aside className="admin-sidebar">
         <h4 className="admin-sidebar-titulo">
           {esAdmin ? 'Panel Admin' : 'Panel Vendedor'}
@@ -241,20 +290,26 @@ export default function Admin({ setCurrentView, onProductChange }) {
             className={`admin-btn-tab ${activeTab === 'productos' ? 'activo' : ''}`}
             onClick={() => setActiveTab('productos')}
           >
-            Productos
+            Productos ({listaProductos.length})
           </button>
           <button
             className={`admin-btn-tab ${activeTab === 'ordenes' ? 'activo' : ''}`}
             onClick={() => setActiveTab('ordenes')}
           >
-            Órdenes
+            Órdenes ({listaOrdenes.length})
+          </button>
+          <button
+            className={`admin-btn-tab ${activeTab === 'contactos' ? 'activo' : ''}`}
+            onClick={() => setActiveTab('contactos')}
+          >
+            Contactos ({listaContactos.length})
           </button>
           {esAdmin && (
             <button
               className={`admin-btn-tab ${activeTab === 'usuarios' ? 'activo' : ''}`}
               onClick={() => setActiveTab('usuarios')}
             >
-              Usuarios
+              Usuarios ({listaUsuarios.length})
             </button>
           )}
         </div>
@@ -262,7 +317,10 @@ export default function Admin({ setCurrentView, onProductChange }) {
         <hr className="admin-divider" />
 
         <div className="admin-sidebar-acciones">
-          <button className="admin-btn-tienda" onClick={() => setCurrentView ? setCurrentView('inicio') : (window.location.href = '/')}>
+          <button
+            className="admin-btn-tienda"
+            onClick={() => (setCurrentView ? setCurrentView('inicio') : (window.location.href = '/'))}
+          >
             Ir a Tienda
           </button>
           <button className="admin-btn-logout" onClick={handleCerrarSesion}>
@@ -271,6 +329,7 @@ export default function Admin({ setCurrentView, onProductChange }) {
         </div>
       </aside>
 
+      {/* CONTENIDO PRINCIPAL */}
       <main className="admin-contenido">
         {notificacion && (
           <div className={`alert alert-${notificacion.tipo} py-2 mb-3`} role="alert">
@@ -278,10 +337,11 @@ export default function Admin({ setCurrentView, onProductChange }) {
           </div>
         )}
 
+        {/* 1. PESTAÑA DASHBOARD */}
         {esAdmin && activeTab === 'dashboard' && (
           <div>
             <h2>Dashboard</h2>
-            <p style={{ color: '#6c757d' }}>Resumen de las actividades diarias</p>
+            <p style={{ color: '#6c757d' }}>Resumen general de Tienda NATO SPORTS</p>
 
             <div className="admin-grid-stats">
               <div className="admin-card-stat compras">
@@ -292,36 +352,45 @@ export default function Admin({ setCurrentView, onProductChange }) {
               <div className="admin-card-stat productos">
                 <h5>Productos Totales</h5>
                 <h2 className="admin-stat-numero">{stats.productos}</h2>
-                <small>Inventario actual: {stats.inventarioActual}</small>
+                <small>Inventario actual: {stats.inventarioActual} unidades</small>
               </div>
               <div className="admin-card-stat usuarios">
                 <h5>Usuarios Registrados</h5>
                 <h2 className="admin-stat-numero">{stats.usuarios}</h2>
-                <small>Nuevos usuarios este mes: {stats.nuevosUsuariosMes}</small>
+                <small>Mensajes recibidos: {stats.contactos}</small>
               </div>
             </div>
 
             <div className="admin-grid-accesos">
               <div className="admin-card-acceso" onClick={() => setActiveTab('productos')}>
-                <h5>Productos</h5>
-                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Administrar inventario y catálogo</p>
+                <h5>Productos ({stats.productos})</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>
+                  Administrar inventario, precios y categorías
+                </p>
               </div>
               <div className="admin-card-acceso" onClick={() => setActiveTab('ordenes')}>
-                <h5>Órdenes</h5>
-                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Gestión de compras realizadas</p>
+                <h5>Órdenes ({stats.compras})</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>
+                  Historial de boletas emitidas
+                </p>
+              </div>
+              <div className="admin-card-acceso" onClick={() => setActiveTab('contactos')}>
+                <h5>Contactos ({stats.contactos})</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>
+                  Revisar mensajes de soporte de clientes
+                </p>
               </div>
               <div className="admin-card-acceso" onClick={() => setActiveTab('usuarios')}>
-                <h5>Usuarios</h5>
-                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Administrar cuentas registradas</p>
-              </div>
-              <div className="admin-card-acceso" onClick={() => setCurrentView ? setCurrentView('inicio') : (window.location.href = '/')}>
-                <h5>Ver Tienda</h5>
-                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>Visualizar la web pública</p>
+                <h5>Usuarios ({stats.usuarios})</h5>
+                <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>
+                  Administrar cuentas y roles
+                </p>
               </div>
             </div>
           </div>
         )}
 
+        {/* 2. PESTAÑA PRODUCTOS */}
         {activeTab === 'productos' && (
           <div>
             <h2>{esAdmin ? 'Gestión de Productos' : 'Lista de Productos'}</h2>
@@ -383,7 +452,9 @@ export default function Admin({ setCurrentView, onProductChange }) {
                           onChange={(e) => setNuevoProducto({ ...nuevoProducto, imagen: e.target.value })}
                         />
                       </div>
-                      <button type="submit" className="admin-btn-guardar">Guardar en Base de Datos</button>
+                      <button type="submit" className="admin-btn-guardar">
+                        Guardar en Base de Datos
+                      </button>
                     </form>
                   </div>
                 </div>
@@ -523,6 +594,7 @@ export default function Admin({ setCurrentView, onProductChange }) {
           </div>
         )}
 
+        {/* 3. PESTAÑA ÓRDENES */}
         {activeTab === 'ordenes' && (
           <div>
             <h2>{esAdmin ? 'Gestión de Órdenes' : 'Lista de Órdenes'}</h2>
@@ -536,6 +608,7 @@ export default function Admin({ setCurrentView, onProductChange }) {
                       <tr>
                         <th>ID Boleta</th>
                         <th>Cliente</th>
+                        <th>Correo</th>
                         <th>Total</th>
                         <th>Fecha</th>
                       </tr>
@@ -543,9 +616,12 @@ export default function Admin({ setCurrentView, onProductChange }) {
                     <tbody>
                       {listaOrdenes.map((o) => (
                         <tr key={o.id}>
-                          <td>#{o.id}</td>
+                          <td><strong>#{o.id}</strong></td>
                           <td>{o.usuario?.nombre || o.usuario_id || 'Invitado'}</td>
-                          <td>${Number(o.total).toLocaleString('es-CL')}</td>
+                          <td>{o.usuario?.email || 'No especificado'}</td>
+                          <td className="text-success fw-bold">
+                            ${Number(o.total).toLocaleString('es-CL')}
+                          </td>
                           <td>{o.fecha ? new Date(o.fecha).toLocaleString('es-CL') : 'N/A'}</td>
                         </tr>
                       ))}
@@ -557,9 +633,82 @@ export default function Admin({ setCurrentView, onProductChange }) {
           </div>
         )}
 
+        {/* 4. PESTAÑA CONTACTOS */}
+        {activeTab === 'contactos' && (
+          <div>
+            <h2>Mensajes de Contacto y Soporte ({listaContactos.length})</h2>
+            <div className="admin-card" style={{ marginTop: '16px' }}>
+              {listaContactos.length === 0 ? (
+                <div className="admin-alerta-vacio">No hay mensajes registrados en la tabla contacto.</div>
+              ) : (
+                <div className="admin-tabla-contenedor">
+                  <table className="admin-tabla">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Mensaje</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listaContactos.map((c) => {
+                        const confirmando = confirmandoEliminarContactoId === c.id;
+                        return (
+                          <tr key={c.id}>
+                            <td>#{c.id}</td>
+                            <td><strong>{c.nombre}</strong></td>
+                            <td>
+                              <a href={`mailto:${c.email}`} className="text-decoration-none">
+                                {c.email}
+                              </a>
+                            </td>
+                            <td style={{ maxWidth: '350px', whiteSpace: 'pre-wrap' }}>
+                              {c.mensaje}
+                            </td>
+                            <td>{c.fecha ? new Date(c.fecha).toLocaleString('es-CL') : 'N/A'}</td>
+                            <td>
+                              {confirmando ? (
+                                <div className="d-flex gap-1">
+                                  <button
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => eliminarContacto(c.id)}
+                                  >
+                                    Confirmar
+                                  </button>
+                                  <button
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={() => setConfirmandoEliminarContactoId(null)}
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  className="btn btn-outline-danger btn-sm"
+                                  onClick={() => setConfirmandoEliminarContactoId(c.id)}
+                                >
+                                  Eliminar
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 5. PESTAÑA USUARIOS */}
         {esAdmin && activeTab === 'usuarios' && (
           <div>
-            <h2>Gestión de Usuarios</h2>
+            <h2>Gestión de Usuarios ({listaUsuarios.length})</h2>
             <div className="admin-card" style={{ marginTop: '16px' }}>
               {listaUsuarios.length === 0 ? (
                 <div className="admin-alerta-vacio">No hay usuarios registrados.</div>
@@ -580,7 +729,9 @@ export default function Admin({ setCurrentView, onProductChange }) {
                           <td>{u.id}</td>
                           <td>{u.nombre}</td>
                           <td>{u.email}</td>
-                          <td>{u.rol}</td>
+                          <td>
+                            <span className="badge bg-secondary">{u.rol}</span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

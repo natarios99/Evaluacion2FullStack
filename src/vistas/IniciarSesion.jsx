@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 'http://localhost:8081/api/v1' }) {
   const [credenciales, setCredenciales] = useState({
@@ -7,6 +8,26 @@ export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 
   });
   const [mensaje, setMensaje] = useState(null);
   const [cargando, setCargando] = useState(false);
+
+  const guardarSesionYRedirigir = (datos, correoFallback = '') => {
+    localStorage.setItem('token', datos.token);
+    localStorage.setItem('rol', datos.rol);
+    localStorage.setItem('usuarioNombre', datos.nombre || datos.email);
+    localStorage.setItem('usuarioEmail', datos.email || correoFallback);
+
+    if (onLoginSuccess) {
+      onLoginSuccess(datos);
+    }
+
+    const rolNormalizado = (datos.rol || '').toUpperCase();
+    if (cambiarVista) {
+      if (rolNormalizado === 'ADMIN' || rolNormalizado === 'VENDEDOR') {
+        cambiarVista('admin-productos');
+      } else {
+        cambiarVista('inicio');
+      }
+    }
+  };
 
   const manejarCambio = (e) => {
     setCredenciales({
@@ -29,24 +50,7 @@ export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 
 
       if (respuesta.ok) {
         const datos = await respuesta.json();
-
-        localStorage.setItem('token', datos.token);
-        localStorage.setItem('rol', datos.rol);
-        localStorage.setItem('usuarioNombre', datos.nombre || datos.email);
-        localStorage.setItem('usuarioEmail', datos.email || credenciales.email);
-
-        if (onLoginSuccess) {
-          onLoginSuccess(datos);
-        }
-
-        const rolNormalizado = (datos.rol || '').toUpperCase();
-        if (cambiarVista) {
-          if (rolNormalizado === 'ADMIN' || rolNormalizado === 'VENDEDOR') {
-            cambiarVista('admin-productos');
-          } else {
-            cambiarVista('inicio');
-          }
-        }
+        guardarSesionYRedirigir(datos, credenciales.email);
       } else {
         const errorData = await respuesta.json().catch(() => ({}));
         setMensaje({
@@ -59,6 +63,38 @@ export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 
       setMensaje({
         tipo: 'danger',
         texto: 'No se pudo conectar con el servidor. Verifica que el backend esté activo.'
+      });
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const manejarLoginGoogle = async (credentialResponse) => {
+    setMensaje(null);
+    setCargando(true);
+
+    try {
+      const respuesta = await fetch(`${URL_API}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential })
+      });
+
+      if (respuesta.ok) {
+        const datos = await respuesta.json();
+        guardarSesionYRedirigir(datos);
+      } else {
+        const errorData = await respuesta.json().catch(() => ({}));
+        setMensaje({
+          tipo: 'danger',
+          texto: errorData.error || 'No se pudo autenticar la cuenta de Google.'
+        });
+      }
+    } catch (error) {
+      console.error('Error en login con Google:', error);
+      setMensaje({
+        tipo: 'danger',
+        texto: 'Error de conexión con el servidor al validar Google.'
       });
     } finally {
       setCargando(false);
@@ -107,6 +143,24 @@ export default function IniciarSesion({ cambiarVista, onLoginSuccess, URL_API = 
             {cargando ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
+
+        <div className="d-flex align-items-center my-3">
+          <hr className="flex-grow-1" />
+          <span className="px-2 text-muted small">o continúa con</span>
+          <hr className="flex-grow-1" />
+        </div>
+
+        <div className="d-flex justify-content-center">
+          <GoogleLogin
+            onSuccess={manejarLoginGoogle}
+            onError={() =>
+              setMensaje({ tipo: 'danger', texto: 'Error al conectar con Google.' })
+            }
+            text="continue_with"
+            shape="rectangular"
+            width="380"
+          />
+        </div>
 
         <div className="text-center mt-3">
           <small className="text-muted">

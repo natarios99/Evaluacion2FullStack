@@ -86,6 +86,14 @@ INSERT INTO producto (nombre, precio, stock, imagen, oferta, categoria_id) VALUE
 ('Mat de Yoga Antideslizante', 12999, 15, '/Matdeyoga.webp', 0, 4),
 ('Botella Térmica Deportiva 1L', 9990, 30, '/Botella.webp', 1, 8);
 
+CREATE TABLE IF NOT EXISTS contacto (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    mensaje TEXT NOT NULL,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 SELECT p.id, p.nombre, p.precio, p.stock, p.oferta, c.nombre AS categoria
 FROM producto p
 INNER JOIN categoria c ON p.categoria_id = c.id;

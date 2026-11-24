@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 
-export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localhost:8081/api/v1' }) {
+export default function RegistroUsuario({ cambiarVista, onLoginSuccess, URL_API = 'http://localhost:8081/api/v1' }) {
   const [formulario, setFormulario] = useState({
     nombre: '',
     email: '',
@@ -55,6 +56,55 @@ export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localh
       setMensaje({
         tipo: 'danger',
         texto: 'Error de conexión con el servidor.'
+      });
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const manejarRegistroGoogle = async (credentialResponse) => {
+    setMensaje(null);
+    setCargando(true);
+
+    try {
+      const respuesta = await fetch(`${URL_API}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential })
+      });
+
+      if (respuesta.ok) {
+        const datos = await respuesta.json();
+
+        localStorage.setItem('token', datos.token);
+        localStorage.setItem('rol', datos.rol);
+        localStorage.setItem('usuarioNombre', datos.nombre || datos.email);
+        localStorage.setItem('usuarioEmail', datos.email);
+
+        if (onLoginSuccess) {
+          onLoginSuccess(datos);
+        }
+
+        const rolNormalizado = (datos.rol || '').toUpperCase();
+        if (cambiarVista) {
+          if (rolNormalizado === 'ADMIN' || rolNormalizado === 'VENDEDOR') {
+            cambiarVista('admin-productos');
+          } else {
+            cambiarVista('inicio');
+          }
+        }
+      } else {
+        const errorData = await respuesta.json().catch(() => ({}));
+        setMensaje({
+          tipo: 'danger',
+          texto: errorData.error || 'No se pudo completar el registro con Google.'
+        });
+      }
+    } catch (error) {
+      console.error('Error al registrar con Google:', error);
+      setMensaje({
+        tipo: 'danger',
+        texto: 'Error de conexión con el servidor al validar Google.'
       });
     } finally {
       setCargando(false);
@@ -117,6 +167,24 @@ export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localh
             {cargando ? 'Registrando...' : 'Registrarse'}
           </button>
         </form>
+
+        <div className="d-flex align-items-center my-3">
+          <hr className="flex-grow-1" />
+          <span className="px-2 text-muted small">o regístrate con</span>
+          <hr className="flex-grow-1" />
+        </div>
+
+        <div className="d-flex justify-content-center">
+          <GoogleLogin
+            onSuccess={manejarRegistroGoogle}
+            onError={() =>
+              setMensaje({ tipo: 'danger', texto: 'Error al conectar con Google.' })
+            }
+            text="signup_with"
+            shape="rectangular"
+            width="380"
+          />
+        </div>
 
         <div className="text-center mt-3">
           <small className="text-muted">
