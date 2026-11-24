@@ -12,6 +12,11 @@ import Admin from './vistas/Admin';
 import VistaCarrito from './vistas/VistaCarrito';
 import PagoExitoso from './vistas/PagoExitoso';
 import PagoError from './vistas/PagoError';
+import ReactDOM from 'react-dom/client';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import App from './App';
+import AdminProductos from './vistas/Admin';
+
 
 const URL_API = 'http://localhost:8081/api/v1';
 
@@ -104,17 +109,18 @@ export default function Aplicacion() {
   const totalPagar = carrito.reduce((suma, item) => suma + (item.precio || 0) * (item.cantidad || 0), 0);
   const totalItemsCarrito = carrito.reduce((suma, item) => suma + (item.cantidad || 0), 0);
 
-  return (
-    <div>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
-        <div className="container">
-          <button className="navbar-brand btn btn-link text-white fw-bold text-decoration-none" onClick={() => setVistaActual('inicio')}>
-             Tienda NATO SPORTS
-          </button>
-          
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
-            <span className="navbar-toggler-icon"></span>
-          </button>
+    return (
+    <GoogleOAuthProvider clientId="363954419431-udb0unt0hpmbh00g4qhj9rtu0cbl1a3b.apps.googleusercontent.com">
+      <div>
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+          <div className="container">
+            <button className="navbar-brand btn btn-link text-white fw-bold text-decoration-none" onClick={() => setVistaActual('inicio')}>
+               Tienda NATO SPORTS
+            </button>
+            
+            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavegacion">
+              <span className="navbar-toggler-icon"></span>
+            </button>
 
           <div className="collapse navbar-collapse" id="menuNavegacion">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
@@ -133,27 +139,14 @@ export default function Aplicacion() {
               <li className="nav-item">
                 <button className={`nav-link btn ${vistaActual === 'contacto' ? 'active fw-bold' : ''}`} onClick={() => setVistaActual('contacto')}>Contacto</button>
               </li>
-              {puedeVerPanel && (
-                <li className="nav-item border-start ps-2 ms-2">
-                  <button className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} onClick={() => setVistaActual('admin-productos')}>
-                    {rolActual === 'ADMIN' ? 'Panel Admin' : 'Panel Vendedor'}
-                  </button>
-                </li>
-              )}
+              <li className="nav-item border-start ps-2 ms-2">
+                <button className={`nav-link btn text-warning ${vistaActual === 'admin-productos' ? 'fw-bold' : ''}`} onClick={() => setVistaActual('admin-productos')}>Panel Admin</button>
+              </li>
             </ul>
 
-            <div className="d-flex gap-2 align-items-center">
-              {localStorage.getItem('token') ? (
-                <>
-                  <span className="text-light small me-2">Rol: {rolActual}</span>
-                  <button className="btn btn-outline-danger btn-sm" onClick={cerrarSesion}>Cerrar Sesión</button>
-                </>
-              ) : (
-                <>
-                  <button className="btn btn-outline-light btn-sm" onClick={() => setVistaActual('iniciar-sesion')}>Iniciar Sesión</button>
-                  <button className="btn btn-primary btn-sm" onClick={() => setVistaActual('registro')}>Registro</button>
-                </>
-              )}
+            <div className="d-flex gap-2">
+              <button className="btn btn-outline-light btn-sm" onClick={() => setVistaActual('iniciar-sesion')}>Iniciar Sesión</button>
+              <button className="btn btn-primary btn-sm" onClick={() => setVistaActual('registro')}>Registro</button>
               
               <button className="btn btn-success btn-sm ms-2" onClick={() => setVistaActual('carrito')}>
                  ({totalItemsCarrito}) - ${totalPagar.toLocaleString('es-CL')}
@@ -163,52 +156,44 @@ export default function Aplicacion() {
         </div>
       </nav>
 
-      <main>
-        {vistaActual === 'inicio' && (
-          <Inicio 
-            cambiarVista={setVistaActual} 
-            agregarAlCarrito={agregarAlCarrito} 
-            verDetalle={verDetalleProducto} 
-          />
-        )}
-        
-        {vistaActual === 'categorias' && (
-          <Categorias 
-            productos={productos} 
-            agregarAlCarrito={agregarAlCarrito} 
-            verDetalle={verDetalleProducto} 
-          />
-        )}
+        <main>
+          {vistaActual === 'inicio' && (
+            <Inicio 
+              cambiarVista={setVistaActual} 
+              agregarAlCarrito={agregarAlCarrito} 
+              verDetalle={verDetalleProducto} 
+            />
+          )}
+          
+          {vistaActual === 'categorias' && (
+            <Categorias 
+              productos={productos} 
+              agregarAlCarrito={agregarAlCarrito} 
+              verDetalle={verDetalleProducto} 
+            />
+          )}
 
-        {vistaActual === 'detalle' && (
-          <DetalleProducto 
-            producto={productoSeleccionado} 
-            agregarAlCarrito={agregarAlCarrito} 
-            cambiarVista={setVistaActual} 
-          />
-        )}
+          {vistaActual === 'detalle' && (
+            <DetalleProducto 
+              producto={productoSeleccionado} 
+              agregarAlCarrito={agregarAlCarrito} 
+              cambiarVista={setVistaActual} 
+            />
+          )}
 
         {vistaActual === 'ofertas' && <Ofertas productos={productos} agregarAlCarrito={agregarAlCarrito} />}
         {vistaActual === 'blogs' && <Blogs />}
         {vistaActual === 'contacto' && <Contacto />}
         
         {vistaActual === 'registro' && <RegistroUsuario cambiarVista={setVistaActual} URL_API={URL_API} />}
-        {vistaActual === 'iniciar-sesion' && (
-          <IniciarSesion 
-            cambiarVista={setVistaActual} 
-            onLoginSuccess={manejarLoginExitoso} 
-            URL_API={URL_API} 
-          />
-        )}
+        {vistaActual === 'iniciar-sesion' && <IniciarSesion cambiarVista={setVistaActual} URL_API={URL_API} />}
         
         {vistaActual === 'carrito' && (
           <VistaCarrito 
             cart={carrito}
-            usuarioId={usuarioActual?.id || null}
             onUpdateQuantity={actualizarCantidadCarrito}
             onRemove={eliminarDelCarrito}
-            onClearCart={() => setCarrito([])}
-            onBuySuccess={manejarCompraExitosa}
+            onProceedToCheckout={procesarPagoYDescontarStock}
             onSimulateError={() => setVistaActual('pago-error')}
             URL_API={URL_API}
           />
@@ -227,9 +212,11 @@ export default function Aplicacion() {
           />
         )}
 
-        {vistaActual === 'admin-productos' && puedeVerPanel && (
-          <Admin 
-            setCurrentView={setVistaActual} 
+        {vistaActual === 'admin-productos' && (
+          <GestionProductos 
+            productos={productos} 
+            recargarProductosDesdeMySQL={cargarProductosDesdeMySQL} 
+            URL_API={URL_API} 
           />
         )}
       </main>

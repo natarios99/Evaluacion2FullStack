@@ -2,14 +2,16 @@ import { render, screen } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import Inicio from '../vistas/Inicio';
 
+vi.mock('/css/inicio.css', () => ({}));
+
 describe('Pruebas simples para la vista de Inicio', () => {
   const funcionVistaSimulada = vi.fn();
 
   test('debe cargar el banner principal de bienvenida', () => {
     render(<Inicio cambiarVista={funcionVistaSimulada} />);
 
-    const tituloBanner = screen.getByRole('heading', { name: /equípate para el rendimiento/i });
 
+    const tituloBanner = screen.getByRole('heading', { name: /equípate para el deporte/i });
     
     expect(tituloBanner).toBeInTheDocument();
   });
@@ -24,3 +26,4 @@ describe('Pruebas simples para la vista de Inicio', () => {
     expect(botonOfertas).toBeInTheDocument();
   });
 });
+

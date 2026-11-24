@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
 import CartView from '../vistas/VistaCarrito';
 
 const carritoMock = [
@@ -34,7 +35,6 @@ describe('Pruebas para CartView / VistaCarrito', () => {
 
     expect(screen.getByText('Zapatillas')).toBeInTheDocument();
     expect(screen.getByText('Polera')).toBeInTheDocument();
-
     expect(screen.getByText(/Total: \$70\.000/i)).toBeInTheDocument();
   });
 
@@ -72,8 +72,16 @@ describe('Pruebas para CartView / VistaCarrito', () => {
     expect(fnRemove).toHaveBeenCalledWith(1);
   });
 
-  it('llama a onProceedToCheckout al hacer clic en Comprar ahora', () => {
+  it('llama a onProceedToCheckout al hacer clic en Comprar ahora', async () => {
     const fnCheckout = vi.fn();
+    
+    vi.stubGlobal('fetch', vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ mensaje: 'Compra procesada con éxito' }),
+      })
+    ));
+
     render(
       <CartView 
         cart={carritoMock} 
@@ -86,7 +94,11 @@ describe('Pruebas para CartView / VistaCarrito', () => {
     const botonComprar = screen.getByText('Comprar ahora');
     fireEvent.click(botonComprar);
 
-    expect(fnCheckout).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => {
+      expect(fnCheckout).toHaveBeenCalledTimes(1);
+    });
+
+    vi.unstubAllGlobals(); 
   });
 
 });

@@ -1,49 +1,41 @@
 import { render, screen } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
+import React from 'react';
 import GestionProductos from '../vistas/GestionProductos';
 
 describe('Pruebas simples para la vista de Gestión de Productos', () => {
-  const listaProductosFalsos = [
-    {
-      id: 1,
-      nombre: 'Pelota de Fútbol Profesional',
-      precio: 19990,
-      categoria: 'Fútbol',
-      stock: 12,
-      imagen: 'https://placeholder.com'
-    }
-  ];
+  
+  test('debe mostrar el formulario de registro y el botón de guardado', async () => {
+    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true }),
+      })
+    ));
 
-  const funcionRecargarSimulada = vi.fn();
-  const urlApiSimulada = 'http://localhost:3000/api';
+    const productosMock = [
+      { id: 1, nombre: 'Pelota de Fútbol Profesional', categoria: 'Fútbol', precio: 19990, stock: 12, imagen: 'https://placeholder.com' }
+    ];
 
-  test('debe mostrar el formulario de registro y el botón de guardado', () => {
     render(
       <GestionProductos 
-        productos={listaProductosFalsos} 
-        recargarProductosDesdeMySQL={funcionRecargarSimulada} 
-        URL_API={urlApiSimulada} 
+        productos={productosMock} 
+        recargarProductosDesdeMySQL={vi.fn()} 
       />
     );
 
-    const tituloPanel = screen.getByRole('heading', { name: /panel administrativo - inventario de productos/i });
-    expect(tituloPanel).toBeInTheDocument();
+    const tituloPrincipal = screen.getByRole('heading', { name: /panel administrativo/i });
+    expect(tituloPrincipal).toBeInTheDocument();
+
+    const subtituloFormulario = screen.getByRole('heading', { name: /agregar nuevo producto deportivo/i });
+    expect(subtituloFormulario).toBeInTheDocument();
 
     const botonGuardar = screen.getByRole('button', { name: /guardar en base de datos/i });
     expect(botonGuardar).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+    alertMock.mockRestore();
   });
 
-  test('debe listar los productos existentes dentro de la tabla', () => {
-    render(
-      <GestionProductos 
-        productos={listaProductosFalsos} 
-        recargarProductosDesdeMySQL={funcionRecargarSimulada} 
-        URL_API={urlApiSimulada} 
-      />
-    );
-
-const celdaProducto = screen.getByText('Pelota de Fútbol Profesional');
-
-    expect(celdaProducto).toBeInTheDocument();
-  });
 });

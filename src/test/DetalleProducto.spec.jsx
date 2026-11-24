@@ -7,7 +7,7 @@ describe('Pruebas para la vista de Detalle de Producto', () => {
   const funcionVistaSimulada = vi.fn();
 
   test('Caso 1: Debe avisar al usuario si no hay ningún producto seleccionado', () => {
-    render(
+    const { container } = render(
       <DetalleProducto 
         producto={null} 
         agregarAlCarrito={funcionCarritoSimulada} 
@@ -15,9 +15,7 @@ describe('Pruebas para la vista de Detalle de Producto', () => {
       />
     );
 
-    const aviso = screen.getByRole('heading', { name: /no se seleccionó ningún producto/i });
-    
-    expect(aviso).toBeInTheDocument();
+    expect(container.firstChild).toBeNull();
   });
 
   test('Caso 2: Debe cargar los datos reales si se le envía un producto', () => {

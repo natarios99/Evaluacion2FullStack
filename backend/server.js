@@ -232,6 +232,56 @@ aplicacion.post('/api/login', async (peticion, respuesta) => {
     respuesta.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
+// NUEVA RUTA: Manejo del inicio de sesión con Google
+aplicacion.post('/api/login-google', async (peticion, respuesta) => {
+  const { token } = peticion.body;
+
+  if (!token) {
+    return respuesta.status(400).json({ error: 'Falta el token de autenticación de Google.' });
+  }
+
+  try {
+    // 1. Decodificar de forma segura el token JWT que envió Google (sin librerías extras para desarrollo básico)
+    const partesToken = token.split('.');
+    if (partesToken.length !== 3) {
+      return respuesta.status(400).json({ error: 'Estructura de token inválida.' });
+    }
+    
+    const payloadBase64 = partesToken[1];
+    const datosDecodificados = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+    
+    const emailGoogle = datosDecodificados.email;
+    const nombreGoogle = datosDecodificados.name || 'Usuario Google';
+
+    if (!emailGoogle) {
+      return respuesta.status(400).json({ error: 'El token de Google no contiene un correo válido.' });
+    }
+
+    // 2. Buscar si el usuario ya existe en tu tabla de MySQL
+    const [usuariosExistentes] = await baseDeDatos.query('SELECT * FROM usuarios WHERE email = ?', [emailGoogle]);
+
+    if (usuariosExistentes.length > 0) {
+      // Caso A: El usuario ya está registrado, devolvemos sus datos para iniciar sesión
+      return respuesta.json(usuariosExistentes[0]);
+    } else {
+      // Caso B: Es la primera vez que entra con Google, lo registramos automáticamente
+      const consultaInsert = 'INSERT INTO usuarios (nombre, email) VALUES (?, ?)';
+      const [resultadoInsert] = await baseDeDatos.query(consultaInsert, [nombreGoogle, emailGoogle]);
+
+      return respuesta.status(201).json({
+        id: resultadoInsert.insertId,
+        nombre: nombreGoogle,
+        email: emailGoogle,
+        mensaje: 'Usuario registrado e iniciado sesión con Google con éxito.'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error al procesar el inicio de sesión de Google:', error.message);
+    respuesta.status(500).json({ error: 'Error interno al verificar la cuenta de Google.' });
+  }
+});
+
 
 const PUERTO = process.env.PUERTO || 3000;
 aplicacion.listen(PUERTO, () => {
