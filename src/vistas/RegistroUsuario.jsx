@@ -1,113 +1,135 @@
 import React, { useState } from 'react';
 
 export default function RegistroUsuario({ cambiarVista, URL_API = 'http://localhost:8081/api/v1' }) {
-  const [datosFormulario, setDatosFormulario] = useState({
+  const [formulario, setFormulario] = useState({
     nombre: '',
     email: '',
-    password: '',
-    confirmarPassword: '',
-    rol: 'CLIENTE'
+    password: ''
   });
+  const [mensaje, setMensaje] = useState(null);
+  const [cargando, setCargando] = useState(false);
 
-  const manejarRegistro = async (e) => {
+  const manejarCambio = (e) => {
+    setFormulario({
+      ...formulario,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const manejarEnvio = async (e) => {
     e.preventDefault();
-
-    if (datosFormulario.password !== datosFormulario.confirmarPassword) {
-      alert('Las contraseñas no coinciden.');
-      return;
-    }
+    setMensaje(null);
+    setCargando(true);
 
     try {
       const respuesta = await fetch(`${URL_API}/auth/registro`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: datosFormulario.nombre,
-          email: datosFormulario.email,
-          password: datosFormulario.password,
-          rol: datosFormulario.rol
+          nombre: formulario.nombre,
+          email: formulario.email,
+          password: formulario.password,
+          rol: 'CLIENTE'
         })
       });
 
       if (respuesta.ok) {
-        alert(`Cuenta creada con éxito para ${datosFormulario.nombre}`);
-        if (cambiarVista) {
-          cambiarVista('iniciar-sesion');
-        }
+        setMensaje({
+          tipo: 'success',
+          texto: 'Cuenta creada con éxito. Redirigiendo al inicio de sesión...'
+        });
+        setFormulario({ nombre: '', email: '', password: '' });
+
+        setTimeout(() => {
+          if (cambiarVista) cambiarVista('iniciar-sesion');
+        }, 1500);
       } else {
         const errorData = await respuesta.json().catch(() => ({}));
-        alert(`Error al registrar: ${errorData.error || 'Inténtalo de nuevo'}`);
+        setMensaje({
+          tipo: 'danger',
+          texto: errorData.error || errorData.message || 'No se pudo completar el registro. El correo ya podría estar en uso.'
+        });
       }
     } catch (error) {
-      console.error('Error de conexión al registrar usuario:', error);
-      alert('No se pudo conectar con el servidor.');
+      console.error('Error al registrar usuario:', error);
+      setMensaje({
+        tipo: 'danger',
+        texto: 'Error de conexión con el servidor.'
+      });
+    } finally {
+      setCargando(false);
     }
   };
 
   return (
-    <div className="container my-5" style={{ maxWidth: '500px' }}>
+    <div className="container my-5" style={{ maxWidth: '450px' }}>
       <div className="card p-4 shadow-sm">
         <h3 className="text-center mb-4">Crear Cuenta</h3>
-        <form onSubmit={manejarRegistro}>
+
+        {mensaje && (
+          <div className={`alert alert-${mensaje.tipo} py-2`} role="alert">
+            {mensaje.texto}
+          </div>
+        )}
+
+        <form onSubmit={manejarEnvio}>
           <div className="mb-3">
             <label className="form-label">Nombre Completo</label>
-            <input 
-              type="text" 
-              className="form-control" 
-              value={datosFormulario.nombre} 
-              onChange={e => setDatosFormulario({...datosFormulario, nombre: e.target.value})} 
-              required 
+            <input
+              type="text"
+              name="nombre"
+              className="form-control"
+              placeholder="Ej: Tomás Porras"
+              value={formulario.nombre}
+              onChange={manejarCambio}
+              required
             />
           </div>
+
           <div className="mb-3">
             <label className="form-label">Correo Electrónico</label>
-            <input 
-              type="email" 
-              className="form-control" 
-              value={datosFormulario.email} 
-              onChange={e => setDatosFormulario({...datosFormulario, email: e.target.value})} 
-              required 
+            <input
+              type="email"
+              name="email"
+              className="form-control"
+              placeholder="ejemplo@correo.cl"
+              value={formulario.email}
+              onChange={manejarCambio}
+              required
             />
           </div>
-          <div className="mb-3">
+
+          <div className="mb-4">
             <label className="form-label">Contraseña</label>
-            <input 
-              type="password" 
-              className="form-control" 
-              value={datosFormulario.password} 
-              onChange={e => setDatosFormulario({...datosFormulario, password: e.target.value})} 
-              required 
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              placeholder="Mínimo 6 caracteres"
+              minLength={6}
+              value={formulario.password}
+              onChange={manejarCambio}
+              required
             />
           </div>
-          <div className="mb-3">
-            <label className="form-label">Confirmar Contraseña</label>
-            <input 
-              type="password" 
-              className="form-control" 
-              value={datosFormulario.confirmarPassword} 
-              onChange={e => setDatosFormulario({...datosFormulario, confirmarPassword: e.target.value})} 
-              required 
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Rol de Usuario</label>
-            <select 
-              className="form-select" 
-              value={datosFormulario.rol} 
-              onChange={e => setDatosFormulario({...datosFormulario, rol: e.target.value})}
-            >
-              <option value="CLIENTE">Cliente</option>
-              <option value="VENDEDOR">Vendedor</option>
-              <option value="ADMIN">Administrador</option>
-            </select>
-          </div>
-          <button type="submit" className="btn btn-primary w-100">Registrarse</button>
+
+          <button type="submit" className="btn btn-success w-100" disabled={cargando}>
+            {cargando ? 'Registrando...' : 'Registrarse'}
+          </button>
         </form>
-        <p className="text-center mt-3 mb-0 small">
-          ¿Ya tienes cuenta? <button className="btn btn-link p-0" onClick={() => cambiarVista && cambiarVista('iniciar-sesion')}>Inicia Sesión aquí</button>
-        </p>
+
+        <div className="text-center mt-3">
+          <small className="text-muted">
+            ¿Ya tienes una cuenta?{' '}
+            <button
+              type="button"
+              className="btn btn-link p-0 align-baseline"
+              onClick={() => cambiarVista && cambiarVista('iniciar-sesion')}
+            >
+              Inicia sesión
+            </button>
+          </small>
+        </div>
       </div>
     </div>
   );

@@ -47,10 +47,12 @@ export default function VistaCarrito({
         body: JSON.stringify(payload)
       });
 
-      if (respuesta.ok) {
+     if (respuesta.ok) {
         const boletaCreada = await respuesta.json();
         if (vaciarCarrito) vaciarCarrito();
-        if (onCompraExitosa) await onCompraExitosa(boletaCreada);
+        if (onCompraExitosa) {
+          await onCompraExitosa(boletaCreada);
+        }
         if (cambiarVista) cambiarVista('pago-exitoso');
       } else {
         const errorData = await respuesta.json().catch(() => ({}));

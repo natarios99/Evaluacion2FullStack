@@ -26,6 +26,7 @@ export default function Aplicacion() {
   const [vistaActual, setVistaActual] = useState('inicio');
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   
+  
   const [productos, setProductos] = useState([]);
   const [carrito, setCarrito] = useState([]);
   const [ultimoPedido, setUltimoPedido] = useState(null);
@@ -287,8 +288,9 @@ export default function Aplicacion() {
 
         {vistaActual === 'pago-exitoso' && (
           <PagoExitoso 
-            orderData={ultimoPedido} 
-            onBackHome={() => setVistaActual('inicio')} 
+            boleta={ultimaBoleta} 
+            usuario={usuarioActual}
+            cambiarVista={setVistaActual} 
           />
         )}
 
